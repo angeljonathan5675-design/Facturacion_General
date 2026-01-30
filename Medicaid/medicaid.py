@@ -535,13 +535,13 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                         if ocurrencias==2:
                             driver.execute_script(f"arguments[0].value = '{suma_charges}';", Charge_Amount)
                         else:
-                            driver.execute_script(f"arguments[0].value = '{Charge[num_factura]}';", Charge_Amount)
+                            driver.execute_script(f"arguments[0].value = '{Charge[ciclo]}';", Charge_Amount)
                         Units = driver.find_element(By.ID,
                                                     value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailUnitsCmnTextBox_{num_factura}_Control_{num_factura}")
                         if ocurrencias == 2:
                             driver.execute_script(f"arguments[0].value = '{suma_unidades}';", Units)
                         else:
-                            driver.execute_script(f"arguments[0].value = '{Unidades[num_factura]}';", Units)
+                            driver.execute_script(f"arguments[0].value = '{Unidades[ciclo]}';", Units)
                         Rendering_ID = driver.find_element(By.ID,
                                                            value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailRenderingProviderIDCmnTextBox_{num_factura}_Control_{num_factura}")
                         Rendering_ID.send_keys(f"{provider_NPI}")

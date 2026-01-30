@@ -11,7 +11,7 @@ import pandas as pd
 import time
 import json
 import os
-
+PROGRESO_FILE = "progreso_facturacion.json"
 
 
 
@@ -22,6 +22,28 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
     def mostrar_alerta(driver, mensaje):
         driver.execute_script("alert(arguments[0]);", mensaje)
     # Leer archivo CSV
+
+
+    def guardar_progreso(client_index, provider_index, ciclo):
+        data = {
+            "client_index": client_index,
+            "provider_index": provider_index,
+            "ciclo": ciclo
+        }
+        with open(PROGRESO_FILE, "w") as f:
+            json.dump(data, f)
+
+    def cargar_progreso():
+        if os.path.exists(PROGRESO_FILE):
+            with open(PROGRESO_FILE, "r") as f:
+                return json.load(f)
+        return None
+
+    def limpiar_progreso():
+        if os.path.exists(PROGRESO_FILE):
+            os.remove(PROGRESO_FILE)
+
+
     usuarios_df = pd.read_excel("medicaid-Usuarios.xlsx")
 
     fila = usuarios_df.loc[usuarios_df["Usuario_App"] == usuario_app]
@@ -118,13 +140,23 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
         mostrar_alerta(driver, mensaje)
         raise Exception("Provider excede horas permitidas")
 
+    progreso = cargar_progreso()
+
+    start_client = progreso["client_index"] if progreso else 0
+    start_provider = progreso["provider_index"] if progreso else 0
+    start_ciclo = progreso["ciclo"] if progreso else 0
+
     print("✅ VALIDACIÓN OK — se puede continuar")
-    for client_name in clientes_unicos:
+    for cliente_i, client_name in enumerate(clientes_unicos):
+        if cliente_i < start_client:
+            continue
         fila = excel[excel["Client Name"] == client_name]
         total_providers_cliente = fila["Provider Name"].count()
 
         providers_unicos = fila["Provider Name"].unique()
-        for provider in providers_unicos:
+        for provider_i, provider in enumerate(providers_unicos):
+            if cliente_i == start_client and provider_i < start_provider:
+                continue
             WebDriverWait(driver, 400).until(
                 EC.presence_of_element_located((By.XPATH, "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div/div[1]/div[2]/div/div[4]/div[3]/div[1]/div/div[2]/input"))
             )
@@ -558,6 +590,8 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                         num_factura+=1
                         ciclo += 1
                         pos += 1
+                        guardar_progreso(cliente_i, provider_i, ciclo)
+
                         print(f"ciclo1: {ciclo}")
                         print(f"conteo {conteo}")
                         if ocurrencias == 2 and Billing_Codes[ciclo] == Billing_Codes[ciclo - 1]:
@@ -573,6 +607,8 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                                 if ocurrencias == 2 and Billing_Codes[ciclo] == Billing_Codes[ciclo + 1]:
                                     ciclo += 1
+                                    guardar_progreso(cliente_i, provider_i, ciclo)
+
                     mensaje = (
                         "✔️ FACTURACIÓN RELLENADA\n\n"
                         "La facturación fue rellenada correctamente.\n\n"
@@ -580,6 +616,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     )
                     mostrar_alerta(driver, mensaje)
                     WebDriverWait(driver, 999999).until_not(EC.alert_is_present())
+                    guardar_progreso(cliente_i, provider_i + 1, 0)
 
                 else:
                     print(f"ciclo {ciclo}")
@@ -664,6 +701,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                     ciclo+=1
                     pos+=1
+                    guardar_progreso(cliente_i, provider_i, ciclo)
                     print(f"ciclo1: {ciclo}")
                     print(f"conteo {conteo}")
                     if ocurrencias == 2 and Billing_Codes[ciclo] == Billing_Codes[ciclo - 1]:
@@ -679,6 +717,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                             if ocurrencias == 2 and Billing_Codes[ciclo] == Billing_Codes[ciclo+1] :
                                 ciclo+=1
+                                guardar_progreso(cliente_i, provider_i, ciclo)
 
             mensaje = (
                 "✔️ FACTURACIÓN RELLENADA\n\n"
@@ -687,6 +726,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
             )
             mostrar_alerta(driver, mensaje)
             WebDriverWait(driver, 999999).until_not(EC.alert_is_present())
+            guardar_progreso(cliente_i, provider_i + 1, 0)
 
 
     WebDriverWait(driver, 9999).until(
@@ -699,3 +739,4 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
     )
     mostrar_alerta(driver, mensaje)
     WebDriverWait(driver, 999999).until_not(EC.alert_is_present())
+    limpiar_progreso()

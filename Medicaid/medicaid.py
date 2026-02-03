@@ -157,7 +157,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
         for provider_i, provider in enumerate(providers_unicos):
             if cliente_i == start_client and provider_i < start_provider:
                 continue
-            WebDriverWait(driver, 400).until(
+            WebDriverWait(driver, 999999).until(
                 EC.presence_of_element_located((By.XPATH, "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div/div[1]/div[2]/div/div[4]/div[3]/div[1]/div/div[2]/input"))
             )
 
@@ -301,7 +301,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
             #-----------------------------------------------------------------------PAGINA 2------------------------------------------------------------------------------------------
             # Aquí esperamos a que aparezca un elemento que solo existe después de autenticarse
-            WebDriverWait(driver, 120).until(
+            WebDriverWait(driver, 9999999).until(
                 EC.presence_of_element_located((By.XPATH, "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div/div[1]/div[3]/div/div[2]/input"))
             )
 
@@ -314,7 +314,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
             #-----------------------------------------------------------------------PAGINA 3------------------------------------------------------------------------------------------
 
-            WebDriverWait(driver, 400).until(
+            WebDriverWait(driver, 99999).until(
                     EC.presence_of_element_located((By.XPATH, "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[5]/div/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div[1]/div[1]/div[2]/div/div[2]/input[1]"))
             )
 
@@ -334,7 +334,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     mostrar_alerta(driver, mensaje)
                     WebDriverWait(driver, 999999).until_not(EC.alert_is_present())
 
-                    WebDriverWait(driver, 400).until(
+                    WebDriverWait(driver, 99999).until(
                         EC.presence_of_element_located((By.XPATH,
                                                         "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div/div[1]/div[2]/div/div[4]/div[3]/div[1]/div/div[2]/input"))
                     )
@@ -427,7 +427,6 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     print(f"0000{Insured_ID}")
                     print(f"TOTAL CLIENTES {total_clientes}")
                     print(Authorization)
-                    print(Billing_Code)
                     print(Charge)
                     print(Unidades)
 
@@ -475,7 +474,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                     # -----------------------------------------------------------------------PAGINA 2------------------------------------------------------------------------------------------
                     # Aquí esperamos a que aparezca un elemento que solo existe después de autenticarse
-                    WebDriverWait(driver, 120).until(
+                    WebDriverWait(driver, 99999).until(
                         EC.presence_of_element_located((By.XPATH,
                                                         "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div/div[1]/div[3]/div/div[2]/input"))
                     )
@@ -491,7 +490,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                     # -----------------------------------------------------------------------PAGINA 3------------------------------------------------------------------------------------------
 
-                    WebDriverWait(driver, 400).until(
+                    WebDriverWait(driver, 99999).until(
                         EC.presence_of_element_located((By.XPATH,
                                                         "/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[5]/div/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div[1]/div[1]/div[2]/div/div[2]/input[1]"))
                     )
@@ -517,16 +516,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                         else:
                             select.select_by_index(3)
                         print(Billing_Codes[ciclo])
-                        if str(Billing_Codes[ciclo]) == "97153":
-                            Billing_Code = "97153-ADAPTIVE BEHAVIOR TX BY TECH"
-                        elif str(Billing_Codes[ciclo]) == "97156":
-                            Billing_Code = "97156-FAM ADAPT BHV TX GDN PHY/QHP"
-                        elif str(Billing_Codes[ciclo]) == "97155":
-                            Billing_Code = "97155-ADAPT BEHAVIOR TX PHYS/QHP"
-                        elif str(Billing_Codes[ciclo]) == "97151":
-                            Billing_Code = "97151-BHV ID ASSMT BY PHYS/QHP"
-                        elif str(Billing_Codes[ciclo]) == "97152":
-                            Billing_Code = "97152-BHV ID SUPRT ASSMT BY 1 TECH"
+
 
                         suma_charges = 0
                         suma_unidades=0
@@ -548,11 +538,15 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                         Procedure_Code = driver.find_element(By.ID,
                                                              value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailProcedureCodeCmnTextBox_{num_factura}_Control_{num_factura}")
-                        Procedure_Code.send_keys(f"{Billing_Code}")
+                        Procedure_Code.send_keys(f"{Billing_Codes[ciclo]}")
+                        time.sleep(1)
+
+                        # Selecciona la primera sugerencia
+                        Procedure_Code.send_keys(Keys.ARROW_DOWN)
+                        Procedure_Code.send_keys(Keys.ENTER)
 
 
-
-                        if Billing_Code == "97153-ADAPTIVE BEHAVIOR TX BY TECH":
+                        if str(Billing_Codes[ciclo]) == "97153":
                             Modifier = driver.find_element(By.ID,
                                                            value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailModifier1CmnTextBox_{num_factura}_Control_{num_factura}")
                             Modifier.send_keys("UD-M/CAID CARE LEV 13 STATE DEF")
@@ -634,16 +628,6 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     else:
                         select.select_by_index(3)
                     print(Billing_Codes[ciclo])
-                    if str(Billing_Codes[ciclo]) == "97153":
-                        Billing_Code = "97153-ADAPTIVE BEHAVIOR TX BY TECH"
-                    elif str(Billing_Codes[ciclo]) == "97156":
-                        Billing_Code = "97156-FAM ADAPT BHV TX GDN PHY/QHP"
-                    elif str(Billing_Codes[ciclo]) == "97155":
-                        Billing_Code = "97155-ADAPT BEHAVIOR TX PHYS/QHP"
-                    elif str(Billing_Codes[ciclo]) == "97151":
-                        Billing_Code = "97151-BHV ID ASSMT BY PHYS/QHP"
-                    elif str(Billing_Codes[ciclo]) == "97152":
-                        Billing_Code = "97152-BHV ID SUPRT ASSMT BY 1 TECH"
 
                     suma_charges = 0
                     suma_unidades=0
@@ -664,10 +648,15 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
 
                     Procedure_Code=driver.find_element(By.ID,value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailProcedureCodeCmnTextBox_{pos}_Control_{pos}")
-                    Procedure_Code.send_keys(f"{Billing_Code}")
+                    Procedure_Code.send_keys(f"{Billing_Codes[ciclo]}")
+                    time.sleep(1)
+
+                    # Selecciona la primera sugerencia
+                    Procedure_Code.send_keys(Keys.ARROW_DOWN)
+                    Procedure_Code.send_keys(Keys.ENTER)
 
 
-                    if Billing_Code=="97153-ADAPTIVE BEHAVIOR TX BY TECH":
+                    if str(Billing_Codes[ciclo])=="97153":
                         Modifier=driver.find_element(By.ID,value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailModifier1CmnTextBox_{pos}_Control_{pos}")
                         Modifier.send_keys("UD-M/CAID CARE LEV 13 STATE DEF")
 

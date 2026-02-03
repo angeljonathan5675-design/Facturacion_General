@@ -51,7 +51,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
         slect_provider.send_keys(texto)
 
         time.sleep(1)
-        first_option = WebDriverWait(driver, 10).until(
+        first_option = WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
         )
         first_option.click()
@@ -137,7 +137,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
     password = fila["contrasena"].iloc[0]
 
 
-    enter_user = WebDriverWait(driver, 20).until(
+    enter_user = WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.ID, "userId"))
     )
 

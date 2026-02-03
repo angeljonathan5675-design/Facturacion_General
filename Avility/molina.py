@@ -50,7 +50,7 @@ def molina_facturacion(excel_billing,usuario_app):
         slect_provider.send_keys(texto)
 
         time.sleep(1)
-        first_option = WebDriverWait(driver, 10).until(
+        first_option = WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
         )
         first_option.click()
@@ -270,7 +270,7 @@ def molina_facturacion(excel_billing,usuario_app):
                 # Llama a esta función dentro de tu bucle, justo donde antes tenías el switch
                 entrar_al_iframe_seguro(driver)
 
-                first_option = WebDriverWait(driver, 20).until(
+                first_option = WebDriverWait(driver, 9999).until(
                     EC.visibility_of_element_located((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
                 )
 
@@ -278,7 +278,7 @@ def molina_facturacion(excel_billing,usuario_app):
 
 
 
-                payer = WebDriverWait(driver, 100).until(
+                payer = WebDriverWait(driver, 999999).until(
                     EC.presence_of_element_located((By.NAME, "payer"))
                 )
 
@@ -290,13 +290,13 @@ def molina_facturacion(excel_billing,usuario_app):
                 # first_option.click()
 
                 # 3. Esperar a que React cargue el formulario
-                WebDriverWait(driver, 100).until(
+                WebDriverWait(driver, 99999).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, "input[name='memberId']"))
                 )
 
                 # 4. Interactuar con el input
 
-                slect_partient = WebDriverWait(driver, 100).until(
+                slect_partient = WebDriverWait(driver, 99999).until(
                         EC.presence_of_element_located((By.XPATH,"/html/body/div[1]/div/div/div[2]/form[2]/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
 
                 )
@@ -422,7 +422,7 @@ def molina_facturacion(excel_billing,usuario_app):
                         campo_procedure_code.send_keys("97153")
 
                         time.sleep(1)
-                        first_option = WebDriverWait(driver, 10).until(
+                        first_option = WebDriverWait(driver, 9999).until(
                             EC.element_to_be_clickable((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
                         )
                         first_option.click()
@@ -437,7 +437,7 @@ def molina_facturacion(excel_billing,usuario_app):
                         campo_procedure_code.send_keys(f"{procedure_code[ciclo]}")
 
                         time.sleep(1)
-                        first_option = WebDriverWait(driver, 10).until(
+                        first_option = WebDriverWait(driver, 9999).until(
                             EC.element_to_be_clickable((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
                         )
                         first_option.click()

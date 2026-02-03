@@ -208,6 +208,10 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
             autorizaciones = fila["Authorization #"].tolist()
             # ------------------------------------------------------------------------------------------------------
 
+            fila["Diagnosis Code"] = fila["Diagnosis Code"].astype(str)
+
+            diagnosis_code = fila["Diagnosis Code"].tolist()
+            # -----------------------------------------------------------------------------------------------
 
             fila["# of Units"] = fila["# of Units"].astype(float)
             Unidades = fila["# of Units"].tolist()
@@ -306,7 +310,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
             )
 
             Diagnostico= driver.find_element(By.XPATH,value="/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div/div[1]/div[3]/div/div[2]/input")
-            Diagnostico.send_keys("F840-Autistic disorder")
+            Diagnostico.send_keys(str(diagnosis_code[0]))
 
             add_diagnostico=driver.find_element(By.XPATH, value="/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div/div[2]/div/a[1]")
             add_diagnostico.click()
@@ -411,7 +415,10 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     Insured_ID = int(fila["Insured's ID"].iloc[0])
 
                     # ------------------------------------------------------------------------------------------------
+                    fila["Diagnosis Code"] = fila["Diagnosis Code"].astype(str)
 
+                    diagnosis_code = fila["Diagnosis Code"].tolist()
+                    # -----------------------------------------------------------------------------------------------
 
                     Authorization =autorizaciones[ciclo]
 
@@ -481,7 +488,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                     Diagnostico = driver.find_element(By.XPATH,
                                                       value="/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div/div[1]/div[3]/div/div[2]/input")
-                    Diagnostico.send_keys("F840-Autistic disorder")
+                    Diagnostico.send_keys(str(diagnosis_code[0]))
 
                     add_diagnostico = driver.find_element(By.XPATH,
                                                           value="/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div[3]/div[1]/div/div/div[2]/div[2]/table/tbody/tr[5]/td/div/div/div/div[2]/div/a[1]")
@@ -511,10 +518,8 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                                                     f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailPlaceOfServiceCmnDropDownList_{num_factura}_Control_{num_factura}")
                         select = Select(Place)
                         # print(f"Place {place_services[ciclo]}")
-                        if place_services[num_factura]=="12":
-                            select.select_by_index(12)
-                        else:
-                            select.select_by_index(3)
+                        select.select_by_index(int(place_services[ciclo]))
+
                         print(Billing_Codes[ciclo])
 
 
@@ -623,10 +628,8 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     Place = driver.find_element(By.ID, f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailPlaceOfServiceCmnDropDownList_{pos}_Control_{pos}")
                     select = Select(Place)
                     print(f"place {place_services[ciclo]}")
-                    if place_services[ciclo]=="12":
-                        select.select_by_index(12)
-                    else:
-                        select.select_by_index(3)
+                    select.select_by_index(int(place_services[ciclo]))
+
                     print(Billing_Codes[ciclo])
 
                     suma_charges = 0

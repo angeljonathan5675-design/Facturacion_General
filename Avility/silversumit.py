@@ -223,6 +223,15 @@ def silversumit_facturacion(excel_billing,usuario_app):
             )
 
             procedure_code = fila_provider["Service"].tolist()
+
+            fila["Diagnosis Code"] = (
+                fila["Diagnosis Code"]
+                .astype(str)
+                .str.replace(".", "", regex=False)
+                .str.extract(r"([A-Z]\d{2,6})", expand=False)
+            )
+
+            diagnosis_code = fila["Diagnosis Code"].tolist()
             #--------------------------------------------------------------------------------------------
 
             def entrar_al_iframe_seguro(driver):
@@ -379,7 +388,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
             elemento.send_keys(Keys.CONTROL, "a")
             elemento.send_keys(Keys.BACKSPACE)
             autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input","mc","formulario")
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[2]/div[2]/div/div/div/div[1]/div/div[1]/div/div/input","f840","formulario")
+            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[2]/div[2]/div/div/div/div[1]/div/div[1]/div/div/input",f"{diagnosis_code[0]}","formulario")
 
             autorizacion=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[8]/div/input")
             autorizacion.send_keys(autorizaciones[ciclo])
@@ -434,7 +443,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
                     first_option.click()
                     campo_procedure_code.send_keys()
 
-                autocompletar(f"claimInformation.serviceLines.{posicion}.diagnosisCodePointer1","f840","factura")
+                autocompletar(f"claimInformation.serviceLines.{posicion}.diagnosisCodePointer1",f"{diagnosis_code[0]}","factura")
                 campo_chargue_amount=driver.find_element(By.NAME,value=f"claimInformation.serviceLines.{posicion}.amount")
                 campo_chargue_amount.send_keys(f"{charge[ciclo]}")
 

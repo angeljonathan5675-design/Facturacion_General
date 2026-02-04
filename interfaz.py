@@ -7,7 +7,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 import time
-
 from Avility.molina import molina_facturacion
 from Avility.silversumit import silversumit_facturacion
 from Medicaid.medicaid import medicaid_facturacion

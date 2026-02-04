@@ -11,7 +11,20 @@ from Avility.molina import molina_facturacion
 from Avility.silversumit import silversumit_facturacion
 from Medicaid.medicaid import medicaid_facturacion
 from PIL import Image, ImageTk  # si tu imagen es JPG/PNG
+from cryptography.fernet import Fernet
+import io
 
+KEY = b'HzzXD8zy3oXBb-kNV_S-ElF0631LsAMzWdHh1wZOiLw='
+f = Fernet(KEY)
+def load_encrypted_excel(path):
+    with open(path, "rb") as file:
+        encrypted_data = file.read()
+    decrypted_data = f.decrypt(encrypted_data)
+    return pd.read_excel(io.BytesIO(decrypted_data))
+
+df_avility = load_encrypted_excel("avility-Usuarios.dat")
+df_medicaid = load_encrypted_excel("medicaid-Usuarios.dat")
+df_usuario_app = load_encrypted_excel("usuarios_APP.dat")
 
 def preguntar_modificar(usuario_app, seguro):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -514,7 +527,7 @@ def escoger_seguro_avilty(usuario):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
 IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-USUARIOS_FILE = os.path.join(BASE_DIR, "medicaid-Usuarios.xlsx")
+USUARIOS_FILE = df_usuario_app
 
 # Crear archivo si no existe
 if not os.path.exists(USUARIOS_FILE):
@@ -618,7 +631,7 @@ def ventana_medicaid(usuario_app):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-    USUARIOS_FILE = os.path.join(BASE_DIR, "medicaid-Usuarios.xlsx")
+    USUARIOS_FILE =df_usuario_app
     ventana = tk.Tk()
     ventana.title("Credenciales Medicaid")
     centrar_ventana(ventana,700)

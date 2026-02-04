@@ -208,9 +208,15 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
             autorizaciones = fila["Authorization #"].tolist()
             # ------------------------------------------------------------------------------------------------------
 
-            fila["Diagnosis Code"] = fila["Diagnosis Code"].astype(str)
+            fila["Diagnosis Code"] = (
+                fila["Diagnosis Code"]
+                .astype(str)
+                .str.replace(".", "", regex=False)
+                .str.extract(r"([A-Z]\d{2,6})", expand=False)
+            )
 
             diagnosis_code = fila["Diagnosis Code"].tolist()
+            print("diagnosis_code" + diagnosis_code[0])
             # -----------------------------------------------------------------------------------------------
 
             fila["# of Units"] = fila["# of Units"].astype(float)
@@ -415,9 +421,15 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     Insured_ID = int(fila["Insured's ID"].iloc[0])
 
                     # ------------------------------------------------------------------------------------------------
-                    fila["Diagnosis Code"] = fila["Diagnosis Code"].astype(str)
+                    fila["Diagnosis Code"] = (
+                        fila["Diagnosis Code"]
+                        .astype(str)
+                        .str.replace(".", "", regex=False)
+                        .str.extract(r"([A-Z]\d{2,6})", expand=False)
+                    )
 
                     diagnosis_code = fila["Diagnosis Code"].tolist()
+                    print("diagnosis_code"+diagnosis_code[0])
                     # -----------------------------------------------------------------------------------------------
 
                     Authorization =autorizaciones[ciclo]

@@ -1,5 +1,7 @@
 from time import sleep
 from tkinter import Tk, filedialog
+
+from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.webdriver.edge.options import Options
 from selenium.webdriver.common.by import By
@@ -11,8 +13,17 @@ import pandas as pd
 import time
 import json
 import os
-PROGRESO_FILE = "progreso_facturacion.json"
+import io
 
+KEY = b'HzzXD8zy3oXBb-kNV_S-ElF0631LsAMzWdHh1wZOiLw='
+f = Fernet(KEY)
+def load_encrypted_excel(path):
+    with open(path, "rb") as file:
+        encrypted_data = file.read()
+    decrypted_data = f.decrypt(encrypted_data)
+    return pd.read_excel(io.BytesIO(decrypted_data))
+PROGRESO_FILE = "progreso_facturacion.json"
+DF_MEDICAID = load_encrypted_excel("medicaid-Usuarios.dat")
 
 
 def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
@@ -44,7 +55,7 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
             os.remove(PROGRESO_FILE)
 
 
-    usuarios_df = pd.read_excel("medicaid-Usuarios.xlsx")
+    usuarios_df = DF_MEDICAID
 
     fila = usuarios_df.loc[usuarios_df["Usuario_App"] == usuario_app]
 

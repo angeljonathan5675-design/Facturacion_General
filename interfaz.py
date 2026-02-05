@@ -14,6 +14,16 @@ from PIL import Image, ImageTk  # si tu imagen es JPG/PNG
 from cryptography.fernet import Fernet
 import io
 
+
+def save_encrypted_excel(df, path, fernet):
+    buffer = io.BytesIO()
+    df.to_excel(buffer, index=False)
+    encrypted_data = fernet.encrypt(buffer.getvalue())
+
+    with open(path, "wb") as file:
+        file.write(encrypted_data)
+
+
 KEY = b'HzzXD8zy3oXBb-kNV_S-ElF0631LsAMzWdHh1wZOiLw='
 f = Fernet(KEY)
 def load_encrypted_excel(path):
@@ -22,15 +32,15 @@ def load_encrypted_excel(path):
     decrypted_data = f.decrypt(encrypted_data)
     return pd.read_excel(io.BytesIO(decrypted_data))
 
-df_avility = load_encrypted_excel("avility-Usuarios.dat")
-df_medicaid = load_encrypted_excel("medicaid-Usuarios.dat")
-df_usuario_app = load_encrypted_excel("usuarios_APP.dat")
+DF_AVILITY = load_encrypted_excel("avility-Usuarios.dat")
+DF_MEDICAID = load_encrypted_excel("medicaid-Usuarios.dat")
+DF_USUARIO_APP = load_encrypted_excel("usuarios_APP.dat")
 
 def preguntar_modificar(usuario_app, seguro):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-    USUARIOS_FILE = os.path.join(BASE_DIR, f"{seguro}-Usuarios.xlsx")
+
 
 
     confirm = tk.Tk()
@@ -55,7 +65,7 @@ def preguntar_modificar(usuario_app, seguro):
 
         tk.Label(col_izq, text=f"Gestión de credenciales {seguro}", font=("Arial", 14, "bold")).pack(pady=10)
 
-        df = pd.read_excel(USUARIOS_FILE)
+        df = DF_USUARIO_APP.copy()
         fila = df[df["Usuario_App"] == usuario_app]
 
         # ✅ cerrar solo la ventana de confirmación (que debe ser Toplevel)
@@ -68,7 +78,7 @@ def preguntar_modificar(usuario_app, seguro):
 
         def modificar():
             # Cargar SIEMPRE el archivo original
-            df = pd.read_excel(USUARIOS_FILE)
+            df = DF_USUARIO_APP.copy()
 
             nueva_contrasena = entry_contrasena.get()
             print(nueva_contrasena)
@@ -88,9 +98,13 @@ def preguntar_modificar(usuario_app, seguro):
             print(df.loc[df["Usuario_App"] == usuario_normalizado, "contrasena"])
 
             # Guardar en el archivo original
-            df.to_excel(USUARIOS_FILE, index=False)
+            save_encrypted_excel(
+                df,
+                "usuarios_APP.dat",
+                f
+            )
 
-            messagebox.showinfo("Éxito", "Contraseña modificada correctamente.")
+            messagebox.showinfo("Éxito", "Credenciales guardadas correctamente.")
             ventana.destroy()
 
         tk.Button(col_izq, text="Modificar contraseña", bg="orange", fg="black", command=modificar).pack(pady=10)
@@ -323,34 +337,62 @@ def ventana_excels_silversumit(usuario):
 
 
 def iniciar_sesion():
+    global DF_USUARIO_APP
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    USUARIOS_FILE = os.path.join(BASE_DIR, "usuarios_APP.xlsx")
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")  # imagen derecha
 
     # Crear archivo de usuarios si no existe
-    if not os.path.exists(USUARIOS_FILE):
-        df = pd.DataFrame(columns=["Usuario", "contrasena"])
-        df.to_excel(USUARIOS_FILE, index=False)
+    if DF_USUARIO_APP.empty:
+        DF_USUARIO_APP = pd.DataFrame(columns=["Usuario", "contrasena"])
 
     def verificar_usuario(usuario, contrasena):
-        df = pd.read_excel(USUARIOS_FILE)
-        fila = df[(df["Usuario"] == usuario) & (df["contrasena"] == contrasena)]
+        global DF_USUARIO_APP
+
+        usuario = usuario.strip()
+        contrasena = contrasena.strip()
+
+        fila = DF_USUARIO_APP[
+            (DF_USUARIO_APP["Usuario"] == usuario) &
+            (DF_USUARIO_APP["contrasena"] == contrasena)
+            ]
         return not fila.empty
 
     def guardar_usuario(usuario, contrasena):
-        df = pd.read_excel(USUARIOS_FILE)
-        if usuario in df["Usuario"].values:
+        global DF_USUARIO_APP
+
+        usuario = usuario.strip()
+        contrasena = contrasena.strip()
+
+        if usuario == "" or contrasena == "":
+            messagebox.showerror(
+                "Error", "No puedes crear un usuario o contraseña en blanco"
+            )
+            return False
+
+        if usuario in DF_USUARIO_APP["Usuario"].values:
             messagebox.showerror("Error", "Ese usuario ya existe.")
             return False
-        elif usuario=="" or contrasena=="":
-            messagebox.showerror("Error", "No puedes crear un usuario o contrasena en blanco")
-            return False
-        nuevo = pd.DataFrame([[usuario, contrasena]], columns=["Usuario", "contrasena"])
-        df = pd.concat([df, nuevo], ignore_index=True)
-        df.to_excel(USUARIOS_FILE, index=False)
-        return True
 
+        nuevo = pd.DataFrame(
+            [[usuario, contrasena]],
+            columns=["Usuario", "contrasena"]
+        )
+
+        # 🔁 ACTUALIZAR MEMORIA
+        DF_USUARIO_APP = pd.concat(
+            [DF_USUARIO_APP, nuevo],
+            ignore_index=True
+        )
+
+        # 🔐 GUARDAR CIFRADO
+        save_encrypted_excel(
+            DF_USUARIO_APP,
+            "usuarios_APP.dat",
+            f
+        )
+
+        return True
 
     login = tk.Tk()
     login.title("Inicio de sesión")
@@ -527,13 +569,11 @@ def escoger_seguro_avilty(usuario):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
 IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-USUARIOS_FILE = df_usuario_app
+
 
 # Crear archivo si no existe
-if not os.path.exists(USUARIOS_FILE):
-    df = pd.DataFrame(columns=["Usuario", "contrasena"])
-    df.to_excel(USUARIOS_FILE, index=False)
-
+if DF_USUARIO_APP.empty:
+    DF_USUARIO_APP = pd.DataFrame(columns=["Usuario", "contrasena"])
 
 
 def ventana_avilty(usuario_app):
@@ -541,7 +581,6 @@ def ventana_avilty(usuario_app):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-    USUARIOS_FILE = os.path.join(BASE_DIR, "avility-Usuarios.xlsx")
     ventana = tk.Tk()
     ventana.title("Credenciales Avilty")
     centrar_ventana(ventana,700)
@@ -562,7 +601,7 @@ def ventana_avilty(usuario_app):
     tk.Label(col_izq, text="Gestión de credenciales Avility", font=("Arial", 14, "bold")).pack(pady=10)
 
     # Leer archivo para ver si ya existe usuario Medicaid
-    df = pd.read_excel(USUARIOS_FILE)
+    df = DF_AVILITY.copy()
     fila = df[df["Usuario_App"] == usuario_app]
 
     if fila.empty:
@@ -600,7 +639,7 @@ def ventana_avilty(usuario_app):
             seguro = messagebox.askyesno("Confirmar", f"¿Seguro que quieres guardar el usuario {usuario_avilty}?")
             if seguro:
                 # Leer archivo
-                df = pd.read_excel(USUARIOS_FILE)
+                df = DF_USUARIO_APP.copy()
 
                 # Crear nuevo registro con la columna extra Usuario_App
                 nuevo = pd.DataFrame(
@@ -612,7 +651,11 @@ def ventana_avilty(usuario_app):
                 df = pd.concat([df, nuevo], ignore_index=True)
 
                 # Guardar
-                df.to_excel(USUARIOS_FILE, index=False)
+                save_encrypted_excel(
+                    df,
+                    "usuarios_APP.dat",
+                    f
+                )
 
                 messagebox.showinfo("Éxito", "Credenciales guardadas correctamente.")
                 ventana.destroy()
@@ -631,7 +674,6 @@ def ventana_medicaid(usuario_app):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-    USUARIOS_FILE =df_usuario_app
     ventana = tk.Tk()
     ventana.title("Credenciales Medicaid")
     centrar_ventana(ventana,700)
@@ -652,7 +694,7 @@ def ventana_medicaid(usuario_app):
     tk.Label(col_izq, text="Gestión de credenciales Medicaid", font=("Arial", 14, "bold")).pack(pady=10)
 
     # Leer archivo para ver si ya existe usuario Medicaid
-    df = pd.read_excel(USUARIOS_FILE)
+    df = DF_MEDICAID.copy()
     fila = df[df["Usuario_App"] == usuario_app]
 
     if fila.empty:
@@ -690,7 +732,7 @@ def ventana_medicaid(usuario_app):
             seguro = messagebox.askyesno("Confirmar", f"¿Seguro que quieres guardar el usuario {usuario_medicaid}?")
             if seguro:
                 # Leer archivo
-                df = pd.read_excel(USUARIOS_FILE)
+                df = DF_USUARIO_APP.copy()
 
                 # Crear nuevo registro con la columna extra Usuario_App
                 nuevo = pd.DataFrame(
@@ -702,11 +744,14 @@ def ventana_medicaid(usuario_app):
                 df = pd.concat([df, nuevo], ignore_index=True)
 
                 # Guardar
-                df.to_excel(USUARIOS_FILE, index=False)
+                save_encrypted_excel(
+                    df,
+                    "usuarios_APP.dat",
+                    f
+                )
 
                 messagebox.showinfo("Éxito", "Credenciales guardadas correctamente.")
                 ventana.destroy()
-
 
         tk.Button(col_izq, text="Guardar", bg="green", fg="white", command=guardar).pack(pady=10)
 

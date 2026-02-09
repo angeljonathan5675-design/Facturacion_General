@@ -1,5 +1,7 @@
 from time import sleep
 from tkinter import Tk, filedialog
+
+from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
@@ -13,8 +15,16 @@ import pandas as pd
 import time
 import json
 import os
+import io
 PROGRESO_FILE = "progreso_facturacion.json"
-
+KEY = b'HzzXD8zy3oXBb-kNV_S-ElF0631LsAMzWdHh1wZOiLw='
+f = Fernet(KEY)
+def load_encrypted_excel(path):
+    with open(path, "rb") as file:
+        encrypted_data = file.read()
+    decrypted_data = f.decrypt(encrypted_data)
+    return pd.read_excel(io.BytesIO(decrypted_data))
+DF_AVILITY = load_encrypted_excel("avility-Usuarios.dat")
 
 
 def silversumit_facturacion(excel_billing,usuario_app):
@@ -129,7 +139,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
     print("✅ VALIDACIÓN OK — se puede continuar")
 
-    usuarios_df = pd.read_excel("avility-Usuarios.xlsx")
+    usuarios_df = DF_AVILITY
 
     fila = usuarios_df.loc[usuarios_df["Usuario_App"] == usuario_app]
 

@@ -37,6 +37,16 @@ DF_MEDICAID = load_encrypted_excel("medicaid-Usuarios.dat")
 DF_USUARIO_APP = load_encrypted_excel("usuarios_APP.dat")
 
 def preguntar_modificar(usuario_app, seguro):
+    SEGUROS = {
+        "medicaid": {
+            "archivo": "medicaid-Usuarios.dat",
+            "df": "DF_MEDICAID"
+        },
+        "avility": {
+            "archivo": "avility-Usuarios.dat",
+            "df": "DF_AVILITY"
+        }
+    }
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
@@ -77,34 +87,45 @@ def preguntar_modificar(usuario_app, seguro):
         entry_contrasena.pack(pady=5)
 
         def modificar():
-            # Cargar SIEMPRE el archivo original
-            df = DF_USUARIO_APP.copy()
+            global DF_MEDICAID, DF_AVILITY
 
-            nueva_contrasena = entry_contrasena.get()
-            print(nueva_contrasena)
-            print(usuario_app)
+            info = SEGUROS.get(seguro)
+
+            if not info:
+                messagebox.showerror("Error", "Seguro no reconocido.")
+                return
+
+            archivo = info["archivo"]
+
+            # Elegir el DataFrame correcto
+            if seguro == "medicaid":
+                df = DF_MEDICAID.copy()
+            elif seguro == "avility":
+                df = DF_AVILITY.copy()
+
+            nueva_contrasena = entry_contrasena.get().strip()
 
             if not nueva_contrasena:
                 messagebox.showerror("Error", "Debes ingresar una nueva contraseña.")
                 return
 
-            # Normalizar para evitar espacios invisibles
             df["Usuario_App"] = df["Usuario_App"].astype(str).str.strip()
             usuario_normalizado = usuario_app.strip()
 
-            # Modificar la contraseña
-            df.loc[df["Usuario_App"] == usuario_normalizado, "contrasena"] = nueva_contrasena
+            df.loc[
+                df["Usuario_App"] == usuario_normalizado,
+                "contrasena"
+            ] = nueva_contrasena
 
-            print(df.loc[df["Usuario_App"] == usuario_normalizado, "contrasena"])
+            save_encrypted_excel(df, archivo, f)
 
-            # Guardar en el archivo original
-            save_encrypted_excel(
-                df,
-                "usuarios_APP.dat",
-                f
-            )
+            # Actualizar el DF global correcto
+            if seguro == "medicaid":
+                DF_MEDICAID = df.copy()
+            elif seguro == "avility":
+                DF_AVILITY = df.copy()
 
-            messagebox.showinfo("Éxito", "Credenciales guardadas correctamente.")
+            messagebox.showinfo("Éxito", "Contraseña modificada correctamente.")
             ventana.destroy()
 
         tk.Button(col_izq, text="Modificar contraseña", bg="orange", fg="black", command=modificar).pack(pady=10)
@@ -337,6 +358,14 @@ def ventana_excels_silversumit(usuario):
 
 
 def iniciar_sesion():
+    def load_encrypted_excel(archivo, f):
+        with open(archivo, "rb") as file:
+            datos_encriptados = file.read()
+
+        datos = f.decrypt(datos_encriptados)
+        return pd.read_excel(io.BytesIO(datos))
+    df = load_encrypted_excel("medicaid-Usuarios.dat", f)
+    print(df)
     global DF_USUARIO_APP
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico

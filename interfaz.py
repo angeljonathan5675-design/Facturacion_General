@@ -746,7 +746,7 @@ def ventana_medicaid(usuario_app):
                 # Guardar
                 save_encrypted_excel(
                     df,
-                    "usuarios_APP.dat",
+                    "medicaid-Usuarios.dat",
                     f
                 )
 

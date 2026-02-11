@@ -658,21 +658,21 @@ def ventana_avilty(usuario_app):
         messagebox.showinfo("Info", "Por ser tu primera vez por favor guarda tu usuario y contraseña de Avility.")
 
         def guardar():
-            usuario_avilty = entry_usuario.get()
-            contrasena_avilty = entry_contrasena.get()
+            usuario_avility= entry_usuario.get()
+            contrasena_avility= entry_contrasena.get()
 
-            if not usuario_avilty or not  contrasena_avilty:
+            if not usuario_avility or not contrasena_avility:
                 messagebox.showerror("Error", "Debes llenar ambos campos.")
                 return
 
-            seguro = messagebox.askyesno("Confirmar", f"¿Seguro que quieres guardar el usuario {usuario_avilty}?")
+            seguro = messagebox.askyesno("Confirmar", f"¿Seguro que quieres guardar el usuario {usuario_avility}?")
             if seguro:
                 # Leer archivo
                 df = DF_USUARIO_APP.copy()
 
                 # Crear nuevo registro con la columna extra Usuario_App
                 nuevo = pd.DataFrame(
-                    [[usuario_avilty, contrasena_avilty, usuario_app]],
+                    [[usuario_avility, contrasena_avility, usuario_app]],
                     columns=["Usuario", "contrasena", "Usuario_App"]
                 )
 
@@ -682,13 +682,12 @@ def ventana_avilty(usuario_app):
                 # Guardar
                 save_encrypted_excel(
                     df,
-                    "usuarios_APP.dat",
+                    "avility-Usuarios.dat",
                     f
                 )
 
                 messagebox.showinfo("Éxito", "Credenciales guardadas correctamente.")
                 ventana.destroy()
-
         tk.Button(col_izq, text="Guardar", bg="green", fg="white", command=guardar).pack(pady=10)
 
     else:

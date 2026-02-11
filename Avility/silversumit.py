@@ -146,7 +146,8 @@ def silversumit_facturacion(excel_billing,usuario_app):
     user_ID = fila["Usuario"].iloc[0]
     password = fila["contrasena"].iloc[0]
 
-
+    print(user_ID)
+    print(password)
     enter_user = WebDriverWait(driver, 30).until(
         EC.presence_of_element_located((By.ID, "userId"))
     )

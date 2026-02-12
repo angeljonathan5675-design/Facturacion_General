@@ -358,33 +358,49 @@ def ventana_excels_silversumit(usuario):
 
 
 def iniciar_sesion():
+
+    import customtkinter as ctk
+    import tkinter as tk
+    from tkinter import messagebox
+    import os, io
+    import pandas as pd
+    from PIL import Image, ImageTk
+
+    ctk.set_appearance_mode("light")
+    ctk.set_default_color_theme("blue")
+
+    # 🎨 COLOR FONDO NUEVO
+    BG_COLOR = "#f7f7f7"
+
+    # ---------------- CARGAR USUARIOS ----------------
+
     def load_encrypted_excel(archivo, f):
         with open(archivo, "rb") as file:
             datos_encriptados = file.read()
 
         datos = f.decrypt(datos_encriptados)
         return pd.read_excel(io.BytesIO(datos))
+
     df = load_encrypted_excel("medicaid-Usuarios.dat", f)
     print(df)
-    global DF_USUARIO_APP
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")  # imagen derecha
 
-    # Crear archivo de usuarios si no existe
+    global DF_USUARIO_APP
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
+    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+
     if DF_USUARIO_APP.empty:
         DF_USUARIO_APP = pd.DataFrame(columns=["Usuario", "contrasena"])
 
+    # ---------------- FUNCIONES ----------------
+
     def verificar_usuario(usuario, contrasena):
         global DF_USUARIO_APP
-
-        usuario = usuario.strip()
-        contrasena = contrasena.strip()
-
         fila = DF_USUARIO_APP[
-            (DF_USUARIO_APP["Usuario"] == usuario) &
-            (DF_USUARIO_APP["contrasena"] == contrasena)
-            ]
+            (DF_USUARIO_APP["Usuario"] == usuario.strip()) &
+            (DF_USUARIO_APP["contrasena"] == contrasena.strip())
+        ]
         return not fila.empty
 
     def guardar_usuario(usuario, contrasena):
@@ -394,68 +410,97 @@ def iniciar_sesion():
         contrasena = contrasena.strip()
 
         if usuario == "" or contrasena == "":
-            messagebox.showerror(
-                "Error", "No puedes crear un usuario o contraseña en blanco"
-            )
+            messagebox.showerror("Error", "No puedes dejar campos vacíos")
             return False
 
         if usuario in DF_USUARIO_APP["Usuario"].values:
             messagebox.showerror("Error", "Ese usuario ya existe.")
             return False
 
-        nuevo = pd.DataFrame(
-            [[usuario, contrasena]],
-            columns=["Usuario", "contrasena"]
-        )
+        nuevo = pd.DataFrame([[usuario, contrasena]],
+                             columns=["Usuario", "contrasena"])
 
-        # 🔁 ACTUALIZAR MEMORIA
-        DF_USUARIO_APP = pd.concat(
-            [DF_USUARIO_APP, nuevo],
-            ignore_index=True
-        )
+        DF_USUARIO_APP = pd.concat([DF_USUARIO_APP, nuevo], ignore_index=True)
 
-        # 🔐 GUARDAR CIFRADO
-        save_encrypted_excel(
-            DF_USUARIO_APP,
-            "usuarios_APP.dat",
-            f
-        )
-
+        save_encrypted_excel(DF_USUARIO_APP, "usuarios_APP.dat", f)
         return True
 
-    login = tk.Tk()
+    # ---------------- VENTANA ----------------
+
+    login = ctk.CTk()
     login.title("Inicio de sesión")
-    centrar_ventana(login,600,300)
-    # Icono de la ventana
+    centrar_ventana(login, 820, 420)
+
+    login.resizable(False, False)
+    login.maxsize(820, 420)
+    login.minsize(820, 420)
+
+    # 🔥 FONDO APLICADO
+    login.configure(fg_color=BG_COLOR)
+
     if os.path.exists(ICONO_FILE):
         login.iconbitmap(ICONO_FILE)
 
-    # Frame principal con dos columnas
-    frame = tk.Frame(login)
+    frame = ctk.CTkFrame(login, fg_color=BG_COLOR, corner_radius=0)
     frame.pack(fill="both", expand=True)
 
-    # Columna izquierda (usuario/contraseña)
-    col_izq = tk.Frame(frame)
-    col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+    # -------- IZQUIERDA --------
+    col_izq = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_izq.pack(side="left", fill="both", expand=True, padx=50, pady=35)
 
-    tk.Label(col_izq, text="Usuario").pack(pady=5)
-    entry_usuario = tk.Entry(col_izq)
-    entry_usuario.pack(pady=5)
+    titulo = ctk.CTkLabel(
+        col_izq,
+        text="Inicio de Sesión",
+        font=("Segoe UI", 22, "bold"),
+        text_color="black"
+    )
+    titulo.pack(pady=(0,25))
 
-    tk.Label(col_izq, text="Contraseña").pack(pady=5)
-    entry_contrasena = tk.Entry(col_izq, show="*")
-    entry_contrasena.pack(pady=5)
+    ctk.CTkLabel(col_izq, text="Usuario", text_color="black").pack(anchor="w")
 
+    entry_usuario = ctk.CTkEntry(col_izq, width=320, height=34)
+    entry_usuario.pack(pady=(5,20))
+
+    # CONTRASEÑA
+    ctk.CTkLabel(col_izq, text="Contraseña", text_color="black").pack(anchor="w")
+
+    frame_pass = ctk.CTkFrame(col_izq, fg_color=BG_COLOR, width=320, height=34)
+    frame_pass.pack()
+    frame_pass.pack_propagate(False)
+
+    entry_contrasena = ctk.CTkEntry(frame_pass, width=320, height=34, show="*")
+    entry_contrasena.place(x=0, y=0)
+
+    mostrar = False
+
+    def toggle_password():
+        nonlocal mostrar
+        mostrar = not mostrar
+        entry_contrasena.configure(show="" if mostrar else "*")
+        btn_ojo.configure(text="🙈" if mostrar else "👁")
+
+    btn_ojo = ctk.CTkButton(
+        frame_pass,
+        text="👁",
+        width=30,
+        height=26,
+        fg_color="transparent",
+        hover_color="#e5e7eb",
+        text_color="black",
+        command=toggle_password
+    )
+    btn_ojo.place(x=285, y=4)
+
+    # -------- FUNCIONES BOTONES --------
 
     def iniciar():
         usuario = entry_usuario.get()
         contrasena = entry_contrasena.get()
+
         if verificar_usuario(usuario, contrasena):
             messagebox.showinfo("Éxito", f"Bienvenido {usuario}")
             login.destroy()
             escoger_seguro(usuario)
-            # Aquí llamas tu ventana principal
-
         else:
             messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
 
@@ -465,79 +510,141 @@ def iniciar_sesion():
         if guardar_usuario(usuario, contrasena):
             messagebox.showinfo("Éxito", "Cuenta creada correctamente.")
 
-    tk.Button(col_izq, text="Iniciar sesión", command=iniciar,width=25, height=2, bg="green", fg="white").pack(pady=10)
-    tk.Button(col_izq, text="Crear cuenta", command=registrar,width=25, height=2, bg="blue", fg="white").pack(pady=5)
+    ctk.CTkButton(
+        col_izq,
+        text="Iniciar sesión",
+        command=iniciar,
+        width=320,
+        height=42,
+        fg_color="#16a34a",
+        hover_color="#15803d"
+    ).pack(pady=(25,10))
 
-    # Columna derecha (imagen/logo)
-    col_der = tk.Frame(frame)
-    col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+    ctk.CTkButton(
+        col_izq,
+        text="Crear cuenta",
+        command=registrar,
+        width=320,
+        height=42,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8"
+    ).pack()
+
+    # -------- DERECHA --------
+    col_der = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_der.pack(side="right", fill="both", expand=True)
 
     if os.path.exists(IMAGEN_FILE):
         imagen = Image.open(IMAGEN_FILE)
-        imagen = imagen.resize((250, 250))
+        imagen = imagen.resize((460, 460))
         imagen_tk = ImageTk.PhotoImage(imagen)
-        label_imagen = tk.Label(col_der, image=imagen_tk)
-        label_imagen.pack()
-        label_imagen.image = imagen_tk  # mantener referencia
+
+        label_imagen = ctk.CTkLabel(
+            col_der,
+            image=imagen_tk,
+            text="",
+            fg_color=BG_COLOR
+        )
+        label_imagen.pack(expand=True)
+        label_imagen.image = imagen_tk
 
     login.mainloop()
-
 def escoger_seguro(usuario):
+
+    import customtkinter as ctk
+    from tkinter import messagebox
+    from PIL import Image, ImageTk
+    import os
+
+    ctk.set_appearance_mode("light")
+    ctk.set_default_color_theme("blue")
+
+    BG_COLOR = "#f7f7f7"
+
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")  # imagen derecha
+    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
+    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
 
+    # -------- VENTANA (más vertical) --------
+    ventana = ctk.CTk()
+    ventana.title("Selección")
+    centrar_ventana(ventana, 500, 500)
 
-    ventana = tk.Tk()
-    ventana.title("Seleccion")
-    centrar_ventana(ventana)
+    ventana.resizable(False, False)
+    ventana.maxsize(500, 500)
+    ventana.minsize(500, 500)
 
-    # Icono de la ventana
+    ventana.configure(fg_color=BG_COLOR)
+
     if os.path.exists(ICONO_FILE):
         ventana.iconbitmap(ICONO_FILE)
 
-    # Frame principal con dos columnas
-    frame = tk.Frame(ventana)
-    frame.pack(fill="both", expand=True)
+    # -------- CONTENEDOR CENTRAL --------
+    contenedor = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
+    contenedor.place(relx=0.5, rely=0.5, anchor="center")
 
-    # Columna izquierda (opciones de seguro)
-    col_izq = tk.Frame(frame)
-    col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+    # -------- LOGO ARRIBA --------
+    if os.path.exists(IMAGEN_FILE):
+        imagen = Image.open(IMAGEN_FILE)
 
-    tk.Label(col_izq, text="Selecciona tu forma de Facturar", font=("Arial", 14)).pack(pady=10)
+        # ⭐ tamaño ideal para vertical
+        imagen.thumbnail((400, 400))
 
+        imagen_tk = ImageTk.PhotoImage(imagen)
+
+        label_imagen = ctk.CTkLabel(
+            contenedor,
+            image=imagen_tk,
+            text="",
+            fg_color=BG_COLOR
+        )
+        label_imagen.pack(pady=(10,20))
+        label_imagen.image = imagen_tk
+
+    # -------- TITULO --------
+    titulo = ctk.CTkLabel(
+        contenedor,
+        text="Selecciona tu forma de Facturar",
+        font=("Segoe UI", 20, "bold"),
+        text_color="black"
+    )
+    titulo.pack(pady=(0,25))
+
+    # -------- FUNCIONES --------
     def elegir_medicaid():
-        tk.messagebox.showinfo("", "Has elegido Medicaid")
+        messagebox.showinfo("", "Has elegido Medicaid")
         ventana.destroy()
         ventana_medicaid(usuario)
-        # aquí puedes llamar a tu función medicaid_facturacion()
 
     def elegir_avilty():
-        tk.messagebox.showinfo("", "Has elegido Avilty")
+        messagebox.showinfo("", "Has elegido Avilty")
         ventana.destroy()
         ventana_avilty(usuario)
 
+    # -------- BOTONES --------
+    ctk.CTkButton(
+        contenedor,
+        text="Medicaid",
+        command=elegir_medicaid,
+        width=320,
+        height=45,
+        fg_color="#16a34a",
+        hover_color="#15803d",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=(0,15))
 
-
-    tk.Button(col_izq, text="Medicaid", width=20, height=2, bg="green", fg="white",  font=("Arial", 10, "bold"),  command=elegir_medicaid).pack(
-        pady=10)
-    tk.Button(col_izq, text="Avilty", width=20, height=2, bg="blue", fg="white",font=("Arial", 10, "bold"), command=elegir_avilty).pack(
-        pady=10)
-
-    # Columna derecha (imagen/logo)
-    col_der = tk.Frame(frame)
-    col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
-
-    if os.path.exists(IMAGEN_FILE):
-        imagen = Image.open(IMAGEN_FILE)
-        imagen = imagen.resize((250, 250))
-        imagen_tk = ImageTk.PhotoImage(imagen)
-        label_imagen = tk.Label(col_der, image=imagen_tk)
-        label_imagen.pack()
-        label_imagen.image = imagen_tk  # mantener referencia
+    ctk.CTkButton(
+        contenedor,
+        text="Avilty",
+        command=elegir_avilty,
+        width=320,
+        height=45,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8",
+        font=("Segoe UI", 14, "bold")
+    ).pack()
 
     ventana.mainloop()
-
 def escoger_seguro_avilty(usuario):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico

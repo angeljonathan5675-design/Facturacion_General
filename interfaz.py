@@ -37,6 +37,7 @@ DF_MEDICAID = load_encrypted_excel("medicaid-Usuarios.dat")
 DF_USUARIO_APP = load_encrypted_excel("usuarios_APP.dat")
 
 def preguntar_modificar(usuario_app, seguro):
+
     SEGUROS = {
         "medicaid": {
             "archivo": "medicaid-Usuarios.dat",
@@ -47,22 +48,33 @@ def preguntar_modificar(usuario_app, seguro):
             "df": "DF_AVILITY"
         }
     }
+
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
 
-
-
-    confirm = tk.Tk()
+    # ⭐ IMPORTANTE: usar Toplevel (no Tk)
+    confirm = tk.Toplevel()
     confirm.title("Confirmación")
     centrar_ventana(confirm, 300, 150)
 
-    tk.Label(confirm, text=f"¿Quieres modificar tu contraseña de {seguro}?", font=("Arial", 10)).pack(pady=20)
+    confirm.grab_set()     # bloquea detrás
+    confirm.focus()
 
+    tk.Label(
+        confirm,
+        text=f"¿Quieres modificar tus credenciales de {seguro}?",
+        font=("Arial", 10)
+    ).pack(pady=20)
+
+    # ---------------- SI ----------------
     def si():
-        ventana = tk.Tk()
+
+        global DF_MEDICAID, DF_AVILITY
+
+        ventana = tk.Toplevel()
         ventana.title(f"Credenciales {seguro}")
-        centrar_ventana(ventana, 700)
+        centrar_ventana(ventana, 700, 450)
 
         if os.path.exists(ICONO_FILE):
             ventana.iconbitmap(ICONO_FILE)
@@ -73,20 +85,43 @@ def preguntar_modificar(usuario_app, seguro):
         col_izq = tk.Frame(frame)
         col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
 
-        tk.Label(col_izq, text=f"Gestión de credenciales {seguro}", font=("Arial", 14, "bold")).pack(pady=10)
+        tk.Label(
+            col_izq,
+            text=f"Gestión de credenciales {seguro}",
+            font=("Arial", 14, "bold")
+        ).pack(pady=10)
 
-        df = DF_USUARIO_APP.copy()
-        fila = df[df["Usuario_App"] == usuario_app]
-
-        # ✅ cerrar solo la ventana de confirmación (que debe ser Toplevel)
         confirm.destroy()
 
-        tk.Label(col_izq, text=f"Usuario {seguro}: {usuario_app}", font=("Arial", 12)).pack(pady=10)
-        tk.Label(col_izq, text="Nueva contraseña").pack(pady=5)
+        tk.Label(
+            col_izq,
+            text=f"Usuario App: {usuario_app}",
+            font=("Arial", 12)
+        ).pack(pady=10)
+
+        cambiar_usuario = tk.BooleanVar(master=ventana)
+        cambiar_contrasena = tk.BooleanVar(master=ventana)
+
+        tk.Checkbutton(
+            col_izq,
+            text="Modificar usuario",
+            variable=cambiar_usuario
+        ).pack(anchor="w")
+
+        entry_usuario = tk.Entry(col_izq)
+        entry_usuario.pack(pady=5)
+
+        tk.Checkbutton(
+            col_izq,
+            text="Modificar contraseña",
+            variable=cambiar_contrasena
+        ).pack(anchor="w")
+
         entry_contrasena = tk.Entry(col_izq, show="*")
         entry_contrasena.pack(pady=5)
 
         def modificar():
+
             global DF_MEDICAID, DF_AVILITY
 
             info = SEGUROS.get(seguro)
@@ -97,39 +132,46 @@ def preguntar_modificar(usuario_app, seguro):
 
             archivo = info["archivo"]
 
-            # Elegir el DataFrame correcto
             if seguro == "medicaid":
                 df = DF_MEDICAID.copy()
             elif seguro == "avility":
                 df = DF_AVILITY.copy()
 
-            nueva_contrasena = entry_contrasena.get().strip()
+            idx = df["Usuario_App"].astype(str).str.strip() == usuario_app.strip()
 
-            if not nueva_contrasena:
-                messagebox.showerror("Error", "Debes ingresar una nueva contraseña.")
+            if not idx.any():
+                messagebox.showerror("Error", "Usuario no encontrado.")
                 return
 
-            df["Usuario_App"] = df["Usuario_App"].astype(str).str.strip()
-            usuario_normalizado = usuario_app.strip()
+            if cambiar_usuario.get():
+                nuevo_usuario = entry_usuario.get().strip()
+                if nuevo_usuario:
+                    df.loc[idx, "Usuario"] = nuevo_usuario
 
-            df.loc[
-                df["Usuario_App"] == usuario_normalizado,
-                "contrasena"
-            ] = nueva_contrasena
+            if cambiar_contrasena.get():
+                nueva_contrasena = entry_contrasena.get().strip()
+                if nueva_contrasena:
+                    df.loc[idx, "contrasena"] = nueva_contrasena
 
             save_encrypted_excel(df, archivo, f)
 
-            # Actualizar el DF global correcto
             if seguro == "medicaid":
                 DF_MEDICAID = df.copy()
             elif seguro == "avility":
                 DF_AVILITY = df.copy()
 
-            messagebox.showinfo("Éxito", "Contraseña modificada correctamente.")
+            messagebox.showinfo("Éxito", "Credenciales actualizadas.")
             ventana.destroy()
 
-        tk.Button(col_izq, text="Modificar contraseña", bg="orange", fg="black", command=modificar).pack(pady=10)
+        tk.Button(
+            col_izq,
+            text="Guardar cambios",
+            bg="orange",
+            fg="black",
+            command=modificar
+        ).pack(pady=15)
 
+        # -------- IMAGEN --------
         col_der = tk.Frame(frame)
         col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
 
@@ -137,25 +179,25 @@ def preguntar_modificar(usuario_app, seguro):
             imagen = Image.open(IMAGEN_FILE)
             imagen = imagen.resize((250, 250))
             imagen_tk = ImageTk.PhotoImage(imagen, master=ventana)
+
             label_imagen = tk.Label(col_der, image=imagen_tk)
             label_imagen.pack()
             label_imagen.image = imagen_tk
 
+    # ---------------- NO ----------------
     def no():
         confirm.destroy()
-        if seguro=="medicaid":
+
+        if seguro == "medicaid":
             ventana_excels_medicaid(usuario_app)
-        if seguro=="avility":
+        elif seguro == "avility":
             escoger_seguro_avilty(usuario_app)
 
+    tk.Button(confirm, text="Sí", width=10, bg="green", fg="white", command=si)\
+        .pack(side="left", padx=30, pady=20)
 
-    tk.Button(confirm, text="Sí", width=10, bg="green", fg="white", command=si).pack(side="left", padx=30, pady=20)
-    tk.Button(confirm, text="No", width=10, bg="red", fg="white", command=no).pack(side="right", padx=30, pady=20)
-
-
-
-
-
+    tk.Button(confirm, text="No", width=10, bg="red", fg="white", command=no)\
+        .pack(side="right", padx=30, pady=20)
 
 
 
@@ -429,6 +471,10 @@ def iniciar_sesion():
 
     login = ctk.CTk()
     login.title("Inicio de sesión")
+    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
+
+    if os.path.exists(ICONO_FILE):
+        login.iconbitmap(ICONO_FILE)
     centrar_ventana(login, 820, 420)
 
     login.resizable(False, False)
@@ -499,7 +545,7 @@ def iniciar_sesion():
 
         if verificar_usuario(usuario, contrasena):
             messagebox.showinfo("Éxito", f"Bienvenido {usuario}")
-            login.destroy()
+            login.withdraw()
             escoger_seguro(usuario)
         else:
             messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
@@ -553,31 +599,24 @@ def escoger_seguro(usuario):
 
     import customtkinter as ctk
     from tkinter import messagebox
-    from PIL import Image, ImageTk
     import os
-
-    ctk.set_appearance_mode("light")
-    ctk.set_default_color_theme("blue")
+    from PIL import Image
 
     BG_COLOR = "#f7f7f7"
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
 
-    # -------- VENTANA (más vertical) --------
-    ventana = ctk.CTk()
+    # -------- VENTANA --------
+    ventana = ctk.CTkToplevel()
     ventana.title("Selección")
-    centrar_ventana(ventana, 500, 500)
+    centrar_ventana(ventana, 600, 600)
 
     ventana.resizable(False, False)
-    ventana.maxsize(500, 500)
-    ventana.minsize(500, 500)
+    ventana.maxsize(600, 600)
+    ventana.minsize(600, 600)
 
     ventana.configure(fg_color=BG_COLOR)
-
-    if os.path.exists(ICONO_FILE):
-        ventana.iconbitmap(ICONO_FILE)
 
     # -------- CONTENEDOR CENTRAL --------
     contenedor = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
@@ -585,26 +624,38 @@ def escoger_seguro(usuario):
 
     # -------- LOGO ARRIBA --------
     if os.path.exists(IMAGEN_FILE):
+
         imagen = Image.open(IMAGEN_FILE)
 
-        # ⭐ tamaño ideal para vertical
-        imagen.thumbnail((400, 400))
-
-        imagen_tk = ImageTk.PhotoImage(imagen)
+        imagen_ctk = ctk.CTkImage(
+            light_image=imagen,
+            dark_image=imagen,
+            size=(300, 300)
+        )
 
         label_imagen = ctk.CTkLabel(
             contenedor,
-            image=imagen_tk,
+            image=imagen_ctk,
             text="",
             fg_color=BG_COLOR
         )
-        label_imagen.pack(pady=(10,20))
-        label_imagen.image = imagen_tk
+
+        label_imagen.pack(pady=(15,10))
+        label_imagen.image = imagen_ctk
+
+    # -------- LINEA SEPARADORA --------
+    divider = ctk.CTkFrame(
+        contenedor,
+        width=320,
+        height=2,
+        fg_color="#e5e7eb"
+    )
+    divider.pack(pady=(5,20))
 
     # -------- TITULO --------
     titulo = ctk.CTkLabel(
         contenedor,
-        text="Selecciona tu forma de Facturar",
+        text="Selecciona la plataforma",
         font=("Segoe UI", 20, "bold"),
         text_color="black"
     )
@@ -644,7 +695,6 @@ def escoger_seguro(usuario):
         font=("Segoe UI", 14, "bold")
     ).pack()
 
-    ventana.mainloop()
 def escoger_seguro_avilty(usuario):
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico
@@ -699,7 +749,7 @@ def escoger_seguro_avilty(usuario):
         label_imagen.pack()
         label_imagen.image = imagen_tk  # mantener referencia
 
-    ventana.mainloop()
+
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -719,7 +769,7 @@ def ventana_avilty(usuario_app):
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
     ventana = tk.Tk()
     ventana.title("Credenciales Avilty")
-    centrar_ventana(ventana,700)
+    centrar_ventana(ventana, 700, 520)
 
 
 

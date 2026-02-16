@@ -38,6 +38,11 @@ DF_USUARIO_APP = load_encrypted_excel("usuarios_APP.dat")
 
 def preguntar_modificar(usuario_app, seguro):
 
+    import customtkinter as ctk
+    from tkinter import messagebox
+    import os
+    from PIL import Image
+
     SEGUROS = {
         "medicaid": {
             "archivo": "medicaid-Usuarios.dat",
@@ -49,83 +54,88 @@ def preguntar_modificar(usuario_app, seguro):
         }
     }
 
+    BG_COLOR = "#f7f7f7"
+
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
     IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
 
-    # ⭐ IMPORTANTE: usar Toplevel (no Tk)
-    confirm = tk.Toplevel()
+    # -------- VENTANA CONFIRMACION --------
+    confirm = ctk.CTkToplevel()
     confirm.title("Confirmación")
-    centrar_ventana(confirm, 300, 150)
+    centrar_ventana(confirm, 360, 180)
+    confirm.configure(fg_color=BG_COLOR)
 
-    confirm.grab_set()     # bloquea detrás
+    confirm.grab_set()
     confirm.focus()
 
-    tk.Label(
-        confirm,
+    cont = ctk.CTkFrame(confirm, fg_color=BG_COLOR)
+    cont.pack(expand=True)
+
+    ctk.CTkLabel(
+        cont,
         text=f"¿Quieres modificar tus credenciales de {seguro}?",
-        font=("Arial", 10)
-    ).pack(pady=20)
+        font=("Segoe UI", 14, "bold"),
+        text_color="black"
+    ).pack(pady=(30,20))
 
     # ---------------- SI ----------------
     def si():
 
         global DF_MEDICAID, DF_AVILITY
 
-        ventana = tk.Toplevel()
+        ventana = ctk.CTkToplevel()
         ventana.title(f"Credenciales {seguro}")
-        centrar_ventana(ventana, 700, 450)
+        centrar_ventana(ventana, 720, 420)
+        ventana.configure(fg_color=BG_COLOR)
 
-        if os.path.exists(ICONO_FILE):
-            ventana.iconbitmap(ICONO_FILE)
+        frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
+        frame.pack(fill="both", expand=True, padx=30, pady=25)
 
-        frame = tk.Frame(ventana)
-        frame.pack(fill="both", expand=True)
+        col_izq = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+        col_izq.pack(side="left", fill="both", expand=True)
 
-        col_izq = tk.Frame(frame)
-        col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
-
-        tk.Label(
+        ctk.CTkLabel(
             col_izq,
             text=f"Gestión de credenciales {seguro}",
-            font=("Arial", 14, "bold")
-        ).pack(pady=10)
+            font=("Segoe UI", 18, "bold"),
+            text_color="black"
+        ).pack(pady=(0,20))
 
         confirm.destroy()
 
-        tk.Label(
+        ctk.CTkLabel(
             col_izq,
             text=f"Usuario App: {usuario_app}",
-            font=("Arial", 12)
-        ).pack(pady=10)
+            font=("Segoe UI", 13),
+            text_color="black"
+        ).pack(pady=(0,15))
 
-        cambiar_usuario = tk.BooleanVar(master=ventana)
-        cambiar_contrasena = tk.BooleanVar(master=ventana)
+        cambiar_usuario = ctk.BooleanVar(value=False)
+        cambiar_contrasena = ctk.BooleanVar(value=False)
 
-        tk.Checkbutton(
+        ctk.CTkCheckBox(
             col_izq,
             text="Modificar usuario",
             variable=cambiar_usuario
         ).pack(anchor="w")
 
-        entry_usuario = tk.Entry(col_izq)
-        entry_usuario.pack(pady=5)
+        entry_usuario = ctk.CTkEntry(col_izq, width=260)
+        entry_usuario.pack(pady=(5,15))
 
-        tk.Checkbutton(
+        ctk.CTkCheckBox(
             col_izq,
             text="Modificar contraseña",
             variable=cambiar_contrasena
         ).pack(anchor="w")
 
-        entry_contrasena = tk.Entry(col_izq, show="*")
-        entry_contrasena.pack(pady=5)
+        entry_contrasena = ctk.CTkEntry(col_izq, show="*", width=260)
+        entry_contrasena.pack(pady=(5,20))
 
         def modificar():
 
             global DF_MEDICAID, DF_AVILITY
 
             info = SEGUROS.get(seguro)
-
             if not info:
                 messagebox.showerror("Error", "Seguro no reconocido.")
                 return
@@ -134,7 +144,7 @@ def preguntar_modificar(usuario_app, seguro):
 
             if seguro == "medicaid":
                 df = DF_MEDICAID.copy()
-            elif seguro == "avility":
+            else:
                 df = DF_AVILITY.copy()
 
             idx = df["Usuario_App"].astype(str).str.strip() == usuario_app.strip()
@@ -157,32 +167,45 @@ def preguntar_modificar(usuario_app, seguro):
 
             if seguro == "medicaid":
                 DF_MEDICAID = df.copy()
-            elif seguro == "avility":
+            else:
                 DF_AVILITY = df.copy()
 
             messagebox.showinfo("Éxito", "Credenciales actualizadas.")
             ventana.destroy()
 
-        tk.Button(
+        ctk.CTkButton(
             col_izq,
             text="Guardar cambios",
-            bg="orange",
-            fg="black",
-            command=modificar
-        ).pack(pady=15)
+            command=modificar,
+            width=260,
+            height=40,
+            fg_color="#f59e0b",
+            hover_color="#d97706",
+            text_color="black",
+            font=("Segoe UI", 13, "bold")
+        ).pack()
 
-        # -------- IMAGEN --------
-        col_der = tk.Frame(frame)
-        col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+        # -------- IMAGEN DERECHA --------
+        col_der = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+        col_der.pack(side="right", fill="both", expand=True)
 
         if os.path.exists(IMAGEN_FILE):
-            imagen = Image.open(IMAGEN_FILE)
-            imagen = imagen.resize((250, 250))
-            imagen_tk = ImageTk.PhotoImage(imagen, master=ventana)
 
-            label_imagen = tk.Label(col_der, image=imagen_tk)
-            label_imagen.pack()
-            label_imagen.image = imagen_tk
+            imagen = Image.open(IMAGEN_FILE)
+
+            imagen_ctk = ctk.CTkImage(
+                light_image=imagen,
+                dark_image=imagen,
+                size=(260,260)
+            )
+
+            label_imagen = ctk.CTkLabel(
+                col_der,
+                image=imagen_ctk,
+                text=""
+            )
+            label_imagen.pack(expand=True)
+            label_imagen.image = imagen_ctk
 
     # ---------------- NO ----------------
     def no():
@@ -193,20 +216,39 @@ def preguntar_modificar(usuario_app, seguro):
         elif seguro == "avility":
             escoger_seguro_avilty(usuario_app)
 
-    tk.Button(confirm, text="Sí", width=10, bg="green", fg="white", command=si)\
-        .pack(side="left", padx=30, pady=20)
+    botones = ctk.CTkFrame(cont, fg_color=BG_COLOR)
+    botones.pack(pady=(10,20))
 
-    tk.Button(confirm, text="No", width=10, bg="red", fg="white", command=no)\
-        .pack(side="right", padx=30, pady=20)
+    ctk.CTkButton(
+        botones,
+        text="Sí",
+        width=120,
+        fg_color="#16a34a",
+        hover_color="#15803d",
+        command=si
+    ).pack(side="left", padx=15)
 
+    ctk.CTkButton(
+        botones,
+        text="No",
+        width=120,
+        fg_color="#dc2626",
+        hover_color="#b91c1c",
+        command=no
+    ).pack(side="right", padx=15)
 
 
 def centrar_ventana(ventana, ancho=600, alto=300):
+
     ventana.update_idletasks()
-    pantalla_ancho = ventana.winfo_screenwidth()
-    pantalla_alto = ventana.winfo_screenheight()
-    x = (pantalla_ancho // 2) - (ancho // 2)
-    y = (pantalla_alto // 2) - (alto // 2)
+
+    # ⭐ área REAL usable de Windows
+    pantalla_ancho = ventana.winfo_vrootwidth()
+    pantalla_alto = ventana.winfo_vrootheight()
+
+    x = int((pantalla_ancho - ancho) / 2)
+    y = int((pantalla_alto - alto) / 2)
+
     ventana.geometry(f"{ancho}x{alto}+{x}+{y}")
 
 
@@ -215,9 +257,22 @@ def centrar_ventana(ventana, ancho=600, alto=300):
 
 
 def ventana_excels_medicaid(usuario):
+
+    import customtkinter as ctk
+    from tkinter import filedialog, messagebox
+    import pandas as pd
+    from PIL import Image
+    import os
+
+    BG_COLOR = "#f7f7f7"
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+
     excel_trabajadores = None
     excel_billing = None
 
+    # -------- FUNCIONES --------
     def cargar_trabajadores():
         nonlocal excel_trabajadores
         ruta = filedialog.askopenfilename(
@@ -227,7 +282,10 @@ def ventana_excels_medicaid(usuario):
         if ruta:
             try:
                 excel_trabajadores = pd.read_excel(ruta)
-                messagebox.showinfo("Éxito", f"Trabajadores cargados: {ruta}\nColumnas: {list(excel_trabajadores.columns)}")
+                messagebox.showinfo(
+                    "Éxito",
+                    f"Trabajadores cargados:\n{list(excel_trabajadores.columns)}"
+                )
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
 
@@ -240,7 +298,10 @@ def ventana_excels_medicaid(usuario):
         if ruta:
             try:
                 excel_billing = pd.read_excel(ruta, header=4, dtype={"Place of Service": str})
-                messagebox.showinfo("Éxito", f"Billing cargado: {ruta}\nColumnas: {list(excel_billing.columns)}")
+                messagebox.showinfo(
+                    "Éxito",
+                    f"Billing cargado:\n{list(excel_billing.columns)}"
+                )
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
 
@@ -248,46 +309,101 @@ def ventana_excels_medicaid(usuario):
         if excel_trabajadores is None or excel_billing is None:
             messagebox.showerror("Error", "Debes cargar ambos archivos antes de ejecutar.")
             return
-        medicaid_facturacion(excel_trabajadores, excel_billing,usuario)
+
+        medicaid_facturacion(excel_trabajadores, excel_billing, usuario)
         messagebox.showinfo("Proceso", "Facturación ejecutada con éxito.")
+
         ventana.destroy()
         escoger_seguro(usuario)
 
-    ventana = tk.Tk()
-    ventana.title("Facturación Seguros")
-    centrar_ventana(ventana,600,300)
+    # -------- VENTANA --------
+    ventana = ctk.CTkToplevel()
+    ventana.title("Facturación Medicaid")
+    centrar_ventana(ventana, 720, 360)
+    ventana.configure(fg_color=BG_COLOR)
 
-    # Crear un frame con dos columnas
-    frame = tk.Frame(ventana)
-    frame.pack(fill="both", expand=True)
+    frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
+    frame.pack(fill="both", expand=True, padx=25, pady=20)
 
-    # Columna izquierda (texto y botones)
-    col_izq = tk.Frame(frame)
-    col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+    # -------- IZQUIERDA --------
+    col_izq = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_izq.pack(side="left", fill="both", expand=True)
 
-    tk.Label(col_izq, text="Carga tus archivos Excel", font=("Arial", 12)).pack(pady=10)
-    tk.Button(col_izq, text="Cargar Excel de Trabajadores", command=cargar_trabajadores, width=25, height=2).pack(pady=5)
-    tk.Button(col_izq, text="Cargar Excel de Billing", command=cargar_billing, width=25, height=2).pack(pady=5)
-    tk.Button(col_izq, text="Ejecutar Medicaid", command=ejecutar_medicaid, width=25, height=2, bg="green", fg="white").pack(pady=20)
+    ctk.CTkLabel(
+        col_izq,
+        text="Carga tus archivos Excel",
+        font=("Segoe UI", 18, "bold"),
+        text_color="black"
+    ).pack(pady=(0,20))
 
-    # Columna derecha (imagen)
-    col_der = tk.Frame(frame)
-    col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+    ctk.CTkButton(
+        col_izq,
+        text="Cargar Excel de Trabajadores",
+        command=cargar_trabajadores,
+        width=280,
+        height=42,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8"
+    ).pack(pady=8)
 
+    ctk.CTkButton(
+        col_izq,
+        text="Cargar Excel de Billing",
+        command=cargar_billing,
+        width=280,
+        height=42,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8"
+    ).pack(pady=8)
 
+    ctk.CTkButton(
+        col_izq,
+        text="Ejecutar Medicaid",
+        command=ejecutar_medicaid,
+        width=280,
+        height=45,
+        fg_color="#16a34a",
+        hover_color="#15803d",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=(20,0))
 
-    # ✅ Cargar imagen dentro de esta ventana
-    imagen = Image.open("Spectrum.jpg")
-    imagen = imagen.resize((330, 330))
-    imagen_tk = ImageTk.PhotoImage(imagen)
-    ventana.iconbitmap("Spectrum.ico")
+    # -------- DERECHA (IMAGEN) --------
+    col_der = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_der.pack(side="right", fill="both", expand=True)
 
-    label_imagen = tk.Label(col_der, image=imagen_tk)
-    label_imagen.image = imagen_tk  # mantener referencia
-    label_imagen.pack()
+    if os.path.exists(IMAGEN_FILE):
+
+        imagen = Image.open(IMAGEN_FILE)
+
+        imagen_ctk = ctk.CTkImage(
+            light_image=imagen,
+            dark_image=imagen,
+            size=(260, 260)
+        )
+
+        label_imagen = ctk.CTkLabel(
+            col_der,
+            image=imagen_ctk,
+            text=""
+        )
+        label_imagen.pack(expand=True)
+        label_imagen.image = imagen_ctk
 
 def ventana_excels_molina(usuario):
+
+    import customtkinter as ctk
+    from tkinter import filedialog, messagebox
+    import pandas as pd
+    from PIL import Image
+    import os
+
+    BG_COLOR = "#f7f7f7"
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+
     excel_billing = None
+
     def cargar_billing():
         nonlocal excel_billing
         ruta = filedialog.askopenfilename(
@@ -297,53 +413,96 @@ def ventana_excels_molina(usuario):
         if ruta:
             try:
                 excel_billing = pd.read_excel(ruta, header=4, dtype={"Place of Service": str})
-                messagebox.showinfo("Éxito", f"Billing cargado: {ruta}\nColumnas: {list(excel_billing.columns)}")
+                messagebox.showinfo("Éxito", "Billing cargado correctamente.")
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
 
     def ejecutar_avilty():
-        if  excel_billing is None:
+        if excel_billing is None:
             messagebox.showerror("Error", "Debes cargar el archivo antes de ejecutar.")
             return
-        molina_facturacion(excel_billing,usuario)
+
+        molina_facturacion(excel_billing, usuario)
         messagebox.showinfo("Proceso", "Facturación ejecutada con éxito.")
+
         ventana.destroy()
         escoger_seguro(usuario)
 
-    ventana = tk.Tk()
-    ventana.title("Facturación Seguros")
-    centrar_ventana(ventana,600,300)
+    # -------- VENTANA --------
+    ventana = ctk.CTkToplevel()
+    ventana.title("Facturación Molina")
+    centrar_ventana(ventana, 720, 360)
+    ventana.configure(fg_color=BG_COLOR)
 
-    # Crear un frame con dos columnas
-    frame = tk.Frame(ventana)
-    frame.pack(fill="both", expand=True)
+    frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
+    frame.pack(fill="both", expand=True, padx=25, pady=20)
 
-    # Columna izquierda (texto y botones)
-    col_izq = tk.Frame(frame)
-    col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+    # -------- IZQUIERDA --------
+    col_izq = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_izq.pack(side="left", fill="both", expand=True)
 
-    tk.Label(col_izq, text="Carga tus archivos Excel", font=("Arial", 12)).pack(pady=10)
-    tk.Button(col_izq, text="Cargar Excel de Billing", command=cargar_billing, width=25, height=2).pack(pady=5)
-    tk.Button(col_izq, text="Ejecutar Avility", command=ejecutar_avilty, width=25, height=2, bg="green", fg="white").pack(pady=20)
+    ctk.CTkLabel(
+        col_izq,
+        text="Carga tu archivo Excel",
+        font=("Segoe UI", 18, "bold"),
+        text_color="black"
+    ).pack(pady=(0,20))
 
-    # Columna derecha (imagen)
-    col_der = tk.Frame(frame)
-    col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+    ctk.CTkButton(
+        col_izq,
+        text="Cargar Excel de Billing",
+        command=cargar_billing,
+        width=280,
+        height=42,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8"
+    ).pack(pady=8)
 
+    ctk.CTkButton(
+        col_izq,
+        text="Ejecutar Molina",
+        command=ejecutar_avilty,
+        width=280,
+        height=45,
+        fg_color="#16a34a",
+        hover_color="#15803d",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=(20,0))
 
+    # -------- DERECHA --------
+    col_der = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_der.pack(side="right", fill="both", expand=True)
 
-    # ✅ Cargar imagen dentro de esta ventana
-    imagen = Image.open("Spectrum.jpg")
-    imagen = imagen.resize((330, 330))
-    imagen_tk = ImageTk.PhotoImage(imagen)
-    ventana.iconbitmap("Spectrum.ico")
+    if os.path.exists(IMAGEN_FILE):
 
-    label_imagen = tk.Label(col_der, image=imagen_tk)
-    label_imagen.image = imagen_tk  # mantener referencia
-    label_imagen.pack()
+        imagen = Image.open(IMAGEN_FILE)
+
+        imagen_ctk = ctk.CTkImage(
+            light_image=imagen,
+            dark_image=imagen,
+            size=(260,260)
+        )
+
+        label_imagen = ctk.CTkLabel(col_der, image=imagen_ctk, text="")
+        label_imagen.pack(expand=True)
+        label_imagen.image = imagen_ctk
+
 
 def ventana_excels_silversumit(usuario):
+
+    import customtkinter as ctk
+    from tkinter import filedialog, messagebox
+    import pandas as pd
+    from PIL import Image
+    import os
+
+    BG_COLOR = "#f7f7f7"
+
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+
     excel_billing = None
+
     def cargar_billing():
         nonlocal excel_billing
         ruta = filedialog.askopenfilename(
@@ -353,51 +512,79 @@ def ventana_excels_silversumit(usuario):
         if ruta:
             try:
                 excel_billing = pd.read_excel(ruta, header=4, dtype={"Place of Service": str})
-                messagebox.showinfo("Éxito", f"Billing cargado: {ruta}\nColumnas: {list(excel_billing.columns)}")
+                messagebox.showinfo("Éxito", "Billing cargado correctamente.")
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
 
     def ejecutar_avilty():
-        if  excel_billing is None:
+        if excel_billing is None:
             messagebox.showerror("Error", "Debes cargar el archivo antes de ejecutar.")
             return
-        silversumit_facturacion(excel_billing,usuario)
+
+        silversumit_facturacion(excel_billing, usuario)
         messagebox.showinfo("Proceso", "Facturación ejecutada con éxito.")
+
         ventana.destroy()
         escoger_seguro(usuario)
 
-    ventana = tk.Tk()
-    ventana.title("Facturación Seguros")
-    centrar_ventana(ventana,600,300)
+    # -------- VENTANA --------
+    ventana = ctk.CTkToplevel()
+    ventana.title("Facturación Silversummit")
+    centrar_ventana(ventana, 720, 360)
+    ventana.configure(fg_color=BG_COLOR)
 
-    # Crear un frame con dos columnas
-    frame = tk.Frame(ventana)
-    frame.pack(fill="both", expand=True)
+    frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
+    frame.pack(fill="both", expand=True, padx=25, pady=20)
 
-    # Columna izquierda (texto y botones)
-    col_izq = tk.Frame(frame)
-    col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+    # -------- IZQUIERDA --------
+    col_izq = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_izq.pack(side="left", fill="both", expand=True)
 
-    tk.Label(col_izq, text="Carga tus archivos Excel", font=("Arial", 12)).pack(pady=10)
-    tk.Button(col_izq, text="Cargar Excel de Billing", command=cargar_billing, width=25, height=2).pack(pady=5)
-    tk.Button(col_izq, text="Ejecutar Avility", command=ejecutar_avilty, width=25, height=2, bg="green", fg="white").pack(pady=20)
+    ctk.CTkLabel(
+        col_izq,
+        text="Carga tu archivo Excel",
+        font=("Segoe UI", 18, "bold"),
+        text_color="black"
+    ).pack(pady=(0,20))
 
-    # Columna derecha (imagen)
-    col_der = tk.Frame(frame)
-    col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+    ctk.CTkButton(
+        col_izq,
+        text="Cargar Excel de Billing",
+        command=cargar_billing,
+        width=280,
+        height=42,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8"
+    ).pack(pady=8)
 
+    ctk.CTkButton(
+        col_izq,
+        text="Ejecutar Silversummit",
+        command=ejecutar_avilty,
+        width=280,
+        height=45,
+        fg_color="#16a34a",
+        hover_color="#15803d",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=(20,0))
 
+    # -------- DERECHA --------
+    col_der = ctk.CTkFrame(frame, fg_color=BG_COLOR)
+    col_der.pack(side="right", fill="both", expand=True)
 
-    # ✅ Cargar imagen dentro de esta ventana
-    imagen = Image.open("Spectrum.jpg")
-    imagen = imagen.resize((330, 330))
-    imagen_tk = ImageTk.PhotoImage(imagen)
-    ventana.iconbitmap("Spectrum.ico")
+    if os.path.exists(IMAGEN_FILE):
 
-    label_imagen = tk.Label(col_der, image=imagen_tk)
-    label_imagen.image = imagen_tk  # mantener referencia
-    label_imagen.pack()
+        imagen = Image.open(IMAGEN_FILE)
 
+        imagen_ctk = ctk.CTkImage(
+            light_image=imagen,
+            dark_image=imagen,
+            size=(260,260)
+        )
+
+        label_imagen = ctk.CTkLabel(col_der, image=imagen_ctk, text="")
+        label_imagen.pack(expand=True)
+        label_imagen.image = imagen_ctk
 
 def iniciar_sesion():
 
@@ -696,71 +883,100 @@ def escoger_seguro(usuario):
     ).pack()
 
 def escoger_seguro_avilty(usuario):
+
+    import customtkinter as ctk
+    from tkinter import messagebox
+    from PIL import Image
+    import os
+
+    BG_COLOR = "#f7f7f7"
+
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")  # icono .ico
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")  # imagen derecha
+    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
 
+    # -------- VENTANA --------
+    ventana = ctk.CTkToplevel()
+    ventana.title("Selección de Seguro")
+    centrar_ventana(ventana, 600, 600)
 
-    ventana = tk.Tk()
-    ventana.title("Seleccion")
-    centrar_ventana(ventana)
+    ventana.resizable(False, False)
+    ventana.configure(fg_color=BG_COLOR)
 
-    # Icono de la ventana
-    if os.path.exists(ICONO_FILE):
-        ventana.iconbitmap(ICONO_FILE)
+    # -------- CONTENEDOR CENTRAL --------
+    contenedor = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
+    contenedor.place(relx=0.5, rely=0.5, anchor="center")
 
-    # Frame principal con dos columnas
-    frame = tk.Frame(ventana)
-    frame.pack(fill="both", expand=True)
+    # -------- LOGO ARRIBA --------
+    if os.path.exists(IMAGEN_FILE):
 
-    # Columna izquierda (opciones de seguro)
-    col_izq = tk.Frame(frame)
-    col_izq.pack(side="left", fill="both", expand=True, padx=20, pady=20)
+        imagen = Image.open(IMAGEN_FILE)
 
-    tk.Label(col_izq, text="Selecciona el Seguro", font=("Arial", 14)).pack(pady=10)
+        imagen_ctk = ctk.CTkImage(
+            light_image=imagen,
+            dark_image=imagen,
+            size=(300,300)   # ⭐ mismo tamaño que tu 2da ventana
+        )
 
+        label_imagen = ctk.CTkLabel(
+            contenedor,
+            image=imagen_ctk,
+            text=""
+        )
+
+        label_imagen.pack(pady=(15,10))
+        label_imagen.image = imagen_ctk
+
+    # -------- LINEA SEPARADORA --------
+    divider = ctk.CTkFrame(
+        contenedor,
+        width=320,
+        height=2,
+        fg_color="#e5e7eb"
+    )
+    divider.pack(pady=(5,20))
+
+    # -------- TITULO --------
+    titulo = ctk.CTkLabel(
+        contenedor,
+        text="Selecciona el Seguro",
+        font=("Segoe UI", 20, "bold"),
+        text_color="black"
+    )
+    titulo.pack(pady=(0,25))
+
+    # -------- FUNCIONES --------
     def elegir_silversumit():
-        tk.messagebox.showinfo("", "Has elegido Silversumit")
+        messagebox.showinfo("", "Has elegido Silversummit")
         ventana.destroy()
         ventana_excels_silversumit(usuario)
 
-
-        # aquí puedes llamar a tu función medicaid_facturacion()
-
     def elegir_molina():
-        tk.messagebox.showinfo("", "Has elegido Molina")
+        messagebox.showinfo("", "Has elegido Molina")
         ventana.destroy()
         ventana_excels_molina(usuario)
 
-    tk.Button(col_izq, text="Silversummit", width=20, height=2, bg="green", fg="white",  font=("Arial", 10, "bold"),  command=elegir_silversumit).pack(
-        pady=10)
-    tk.Button(col_izq, text="Molina", width=20, height=2, bg="blue", fg="white",font=("Arial", 10, "bold"), command=elegir_molina).pack(
-        pady=10)
+    # -------- BOTONES --------
+    ctk.CTkButton(
+        contenedor,
+        text="Silversummit",
+        command=elegir_silversumit,
+        width=320,
+        height=45,
+        fg_color="#16a34a",
+        hover_color="#15803d",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=(0,15))
 
-    # Columna derecha (imagen/logo)
-    col_der = tk.Frame(frame)
-    col_der.pack(side="right", fill="both", expand=True, padx=20, pady=20)
-
-    if os.path.exists(IMAGEN_FILE):
-        imagen = Image.open(IMAGEN_FILE)
-        imagen = imagen.resize((250, 250))
-        imagen_tk = ImageTk.PhotoImage(imagen)
-        label_imagen = tk.Label(col_der, image=imagen_tk)
-        label_imagen.pack()
-        label_imagen.image = imagen_tk  # mantener referencia
-
-
-
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
-IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-
-
-# Crear archivo si no existe
-if DF_USUARIO_APP.empty:
-    DF_USUARIO_APP = pd.DataFrame(columns=["Usuario", "contrasena"])
-
+    ctk.CTkButton(
+        contenedor,
+        text="Molina",
+        command=elegir_molina,
+        width=320,
+        height=45,
+        fg_color="#2563eb",
+        hover_color="#1d4ed8",
+        font=("Segoe UI", 14, "bold")
+    ).pack()
 
 def ventana_avilty(usuario_app):
 

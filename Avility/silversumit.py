@@ -14,8 +14,18 @@ from selenium.webdriver.support.ui import Select
 import pandas as pd
 import time
 import json
-import os
 import io
+import sys
+import os
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 PROGRESO_FILE = "progreso_facturacion.json"
 KEY = b'HzzXD8zy3oXBb-kNV_S-ElF0631LsAMzWdHh1wZOiLw='
 f = Fernet(KEY)
@@ -24,7 +34,7 @@ def load_encrypted_excel(path):
         encrypted_data = file.read()
     decrypted_data = f.decrypt(encrypted_data)
     return pd.read_excel(io.BytesIO(decrypted_data))
-DF_AVILITY = load_encrypted_excel("avility-Usuarios.dat")
+DF_AVILITY = load_encrypted_excel(resource_path("avility-Usuarios.dat"))
 
 
 def silversumit_facturacion(excel_billing,usuario_app):

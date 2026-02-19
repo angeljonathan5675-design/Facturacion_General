@@ -14,6 +14,14 @@ import time
 import json
 import os
 import io
+import sys
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 KEY = b'HzzXD8zy3oXBb-kNV_S-ElF0631LsAMzWdHh1wZOiLw='
 f = Fernet(KEY)
@@ -23,7 +31,7 @@ def load_encrypted_excel(path):
     decrypted_data = f.decrypt(encrypted_data)
     return pd.read_excel(io.BytesIO(decrypted_data))
 PROGRESO_FILE = "progreso_facturacion.json"
-DF_MEDICAID = load_encrypted_excel("medicaid-Usuarios.dat")
+DF_MEDICAID = load_encrypted_excel(resource_path("medicaid-Usuarios.dat"))
 
 
 def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):

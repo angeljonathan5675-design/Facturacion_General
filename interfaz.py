@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -13,7 +12,16 @@ from Medicaid.medicaid import medicaid_facturacion
 from PIL import Image, ImageTk  # si tu imagen es JPG/PNG
 from cryptography.fernet import Fernet
 import io
+import sys
+import os
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 def save_encrypted_excel(df, path, fernet):
     buffer = io.BytesIO()
@@ -32,9 +40,9 @@ def load_encrypted_excel(path):
     decrypted_data = f.decrypt(encrypted_data)
     return pd.read_excel(io.BytesIO(decrypted_data))
 
-DF_AVILITY = load_encrypted_excel("avility-Usuarios.dat")
-DF_MEDICAID = load_encrypted_excel("medicaid-Usuarios.dat")
-DF_USUARIO_APP = load_encrypted_excel("usuarios_APP.dat")
+DF_AVILITY = load_encrypted_excel(resource_path("avility-Usuarios.dat"))
+DF_MEDICAID = load_encrypted_excel(resource_path("medicaid-Usuarios.dat"))
+DF_USUARIO_APP = load_encrypted_excel(resource_path("usuarios_APP.dat"))
 
 def preguntar_modificar(usuario_app, seguro):
 
@@ -618,7 +626,7 @@ def iniciar_sesion():
         datos = f.decrypt(datos_encriptados)
         return pd.read_excel(io.BytesIO(datos))
 
-    df = load_encrypted_excel("medicaid-Usuarios.dat", f)
+    df = load_encrypted_excel(resource_path("medicaid-Usuarios.dat"), f)
     print(df)
 
     global DF_USUARIO_APP

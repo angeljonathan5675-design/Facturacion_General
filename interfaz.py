@@ -238,18 +238,26 @@ def preguntar_modificar(usuario_app, seguro):
     ).pack(side="right", padx=15)
 
 
-def centrar_ventana(ventana, ancho=600, alto=300):
+def centrar_ventana(ventana, ancho=720, alto=360):
 
-    ventana.update_idletasks()
+    def _centrar():
 
-    # ⭐ área REAL usable de Windows
-    pantalla_ancho = ventana.winfo_vrootwidth()
-    pantalla_alto = ventana.winfo_vrootheight()
+        ventana.update_idletasks()
 
-    x = int((pantalla_ancho - ancho) / 2)
-    y = int((pantalla_alto - alto) / 2)
+        pantalla_ancho = ventana.winfo_screenwidth()
+        pantalla_alto = ventana.winfo_screenheight()
 
-    ventana.geometry(f"{ancho}x{alto}+{x}+{y}")
+        # ⭐ desplazamiento proporcional al monitor
+        mover_derecha = int(pantalla_ancho * 0.16)
+
+        x = int((pantalla_ancho - ancho) / 2) + mover_derecha
+        y = int((pantalla_alto - alto) / 2)
+
+        ventana.geometry(f"{ancho}x{alto}+{x}+{y}")
+
+    ventana.after(120, _centrar)
+
+
 
 
 

@@ -302,13 +302,46 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
             first_option.click()
 
-
-
             payer = WebDriverWait(driver, 100).until(
                 EC.presence_of_element_located((By.NAME, "payer"))
             )
 
-            payer.send_keys("SILVERSUMMIT HEALTHPLAN")
+            driver.execute_script("""
+            var input = arguments[0];
+            var rect = input.getBoundingClientRect();
+
+            // crear label
+            var label = document.createElement('div');
+            label.innerText = 'escribe el seguro';
+            label.id = 'tooltip_seguro_custom';   // 👈 importante: le ponemos un ID
+            label.style.position = 'absolute';
+            label.style.background = '#222';
+            label.style.color = 'white';
+            label.style.padding = '4px 8px';
+            label.style.borderRadius = '6px';
+            label.style.fontSize = '12px';
+            label.style.zIndex = '9999';
+            label.style.top = (window.scrollY + rect.top - 30) + 'px';
+            label.style.left = (window.scrollX + rect.left) + 'px';
+
+            document.body.appendChild(label);
+
+            // 🔥 Cuando el usuario cambie el valor del input, eliminar cartel
+            input.addEventListener('change', function(){
+                var tip = document.getElementById('tooltip_seguro_custom');
+                if(tip){
+                    tip.remove();
+                }
+            });
+
+            // EXTRA PRO: también cuando escriba
+            input.addEventListener('input', function(){
+                var tip = document.getElementById('tooltip_seguro_custom');
+                if(tip){
+                    tip.remove();
+                }
+            });
+            """, payer)
             # time.sleep(1)
             # first_option = WebDriverWait(driver, 10).until(
             #     EC.element_to_be_clickable((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
@@ -316,16 +349,17 @@ def silversumit_facturacion(excel_billing,usuario_app):
             # first_option.click()
 
             # 3. Esperar a que React cargue el formulario
-            WebDriverWait(driver, 100).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR,  "input[role='combobox'][placeholder='Type to search...']"))
+
+            WebDriverWait(driver, 30).until(
+                EC.invisibility_of_element(first_option)
             )
 
-            # 4. Interactuar con el input
 
-            slect_partient = WebDriverWait(driver, 100).until(
-                    EC.presence_of_element_located((By.XPATH,"/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
-
+            slect_partient = WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable((By.XPATH,
+                                            "/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
             )
+
             slect_partient.send_keys(client_name)
 
 

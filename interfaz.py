@@ -6,8 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 import time
-from Avility.molina import molina_facturacion
-from Avility.silversumit import silversumit_facturacion
+from Avility.avility import silversumit_facturacion
 from Medicaid.medicaid import medicaid_facturacion
 from PIL import Image, ImageTk  # si tu imagen es JPG/PNG
 from cryptography.fernet import Fernet
@@ -438,7 +437,7 @@ def ventana_excels_molina(usuario):
             messagebox.showerror("Error", "Debes cargar el archivo antes de ejecutar.")
             return
 
-        molina_facturacion(excel_billing, usuario)
+
         messagebox.showinfo("Proceso", "Facturación ejecutada con éxito.")
 
         ventana.destroy()

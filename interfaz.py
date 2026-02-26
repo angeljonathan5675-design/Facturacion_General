@@ -632,8 +632,8 @@ def iniciar_sesion():
     global DF_USUARIO_APP
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+    ICONO_FILE = resource_path("Spectrum.ico")
+    IMAGEN_FILE = resource_path("Spectrum.jpg")
 
     if DF_USUARIO_APP.empty:
         DF_USUARIO_APP = pd.DataFrame(columns=["Usuario", "contrasena"])
@@ -674,7 +674,8 @@ def iniciar_sesion():
 
     login = ctk.CTk()
     login.title("Inicio de sesión")
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
+    ICONO_FILE = resource_path("Spectrum.ico")
+
 
     if os.path.exists(ICONO_FILE):
         login.iconbitmap(ICONO_FILE)
@@ -997,8 +998,8 @@ def escoger_seguro_avilty(usuario):
 def ventana_avilty(usuario_app):
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+    ICONO_FILE = resource_path("Spectrum.ico")
+    IMAGEN_FILE = resource_path("Spectrum.jpg")
     ventana = tk.Tk()
     ventana.title("Credenciales Avilty")
     centrar_ventana(ventana, 700, 520)
@@ -1089,8 +1090,8 @@ def ventana_avilty(usuario_app):
 def ventana_medicaid(usuario_app):
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    ICONO_FILE = os.path.join(BASE_DIR, "Spectrum.ico")
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
+    ICONO_FILE = resource_path("Spectrum.ico")
+    IMAGEN_FILE = resource_path("Spectrum.jpg")
     ventana = tk.Tk()
     ventana.title("Credenciales Medicaid")
     centrar_ventana(ventana,700)

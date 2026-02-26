@@ -323,7 +323,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
             # 4. Interactuar con el input
 
             slect_partient = WebDriverWait(driver, 100).until(
-                    EC.presence_of_element_located((By.XPATH,"/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
+                    EC.presence_of_element_located((By.XPATH,"/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
 
             )
             slect_partient.send_keys(client_name)
@@ -343,10 +343,10 @@ def silversumit_facturacion(excel_billing,usuario_app):
             authorized_plan.send_keys("Y")
 
 
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[1]/div[2]/div/div[1]/div/div/div/input","Spectrum","formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[1]/div[2]/div/div[1]/div/div/div/input","Spectrum","formulario")
+
             def reescribir(valor, texto):
-                elemento = driver.find_element(By.NAME,
-                                                       value=f"{valor}")
+                elemento = driver.find_element(By.NAME,value=f"{valor}")
 
                 elemento.click()
                 elemento.send_keys(Keys.CONTROL, "a")
@@ -355,15 +355,15 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
 
 
-            button_rendering_provider=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[3]/button[1]")
+            button_rendering_provider=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[3]/button[1]")
             button_rendering_provider.click()
 
             last_name_rendering = " ".join(provider.split()[-2:])
 
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/div/div/input", last_name_rendering,"formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/div/div/input", last_name_rendering,"formulario")
 
 
-            button_refering_provider=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[3]/button[2]")
+            button_refering_provider=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[3]/button[2]")
             button_refering_provider.click()
             first_name_referring=fila["Referring Provider Name"].iloc[0].split()[0]
             last_name_referring = fila["Referring Provider Name"].iloc[0].split()[-1]
@@ -384,13 +384,13 @@ def silversumit_facturacion(excel_billing,usuario_app):
             patient_control_number=driver.find_element(By.NAME,value="claimInformation.controlNumber")
             patient_control_number.send_keys(subscriber_memberId)
 
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[2]/div/div/input",place_services[0],"formulario")
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[3]/div/div/input","A","formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[2]/div/div/input",place_services[0],"formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[3]/div/div/input","A","formulario")
             autocompletar(
-                "/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[4]/div/div/input",
+                "/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[4]/div/div/input",
                 "A", "formulario")
 
-            relase = driver.find_element(By.XPATH, value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[5]/div/div/input")
+            relase = driver.find_element(By.XPATH, value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[5]/div/div/input")
             relase.send_keys("Y")
 
             time.sleep(0.5)
@@ -400,18 +400,18 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
             options[1].click()
 
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[6]/div/div/input", "Y","formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[6]/div/div/input", "Y","formulario")
 
             elemento = driver.find_element(By.XPATH,
-                                           value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input")
+                                           value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input")
 
             elemento.click()
             elemento.send_keys(Keys.CONTROL, "a")
             elemento.send_keys(Keys.BACKSPACE)
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input","mc","formulario")
-            autocompletar("/html/body/div[1]/div/div/div[2]/form/div[1]/div[2]/div[2]/div/div/div/div[1]/div/div[1]/div/div/input",f"{diagnosis_code[0]}","formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input","mc","formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[2]/div[2]/div/div/div/div[1]/div/div[1]/div/div/input",f"{diagnosis_code[0]}","formulario")
 
-            autorizacion=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[8]/div/input")
+            autorizacion=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[8]/div/input")
             autorizacion.send_keys(autorizaciones[ciclo])
 
             continuar=True
@@ -488,7 +488,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
                     else:
                         if conteo - ciclo != 1:
                             add_line_button = driver.find_element(By.XPATH,
-                                                                  value="/html/body/div[1]/div/div/div[2]/form/div[1]/div[4]/div[2]/div/div[2]/div[1]/button")
+                                                                  value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[4]/div[2]/div/div[2]/div[1]/button")
                             add_line_button.click()
                         ciclo += 1
                         posicion += 1
@@ -507,8 +507,11 @@ def silversumit_facturacion(excel_billing,usuario_app):
                     mostrar_alerta(driver, mensaje)
                     WebDriverWait(driver, 999999).until_not(EC.alert_is_present())
 
+            WebDriverWait(driver, 9999).until(
+                EC.url_changes(driver.current_url)
+            )
             continue_button = driver.find_element(By.XPATH,
-                                                  "/html/body/div[1]/div/div/div[2]/form/div[2]/div[2]/button")
+                                                  "/html/body/div/div/div/div[2]/div/div[3]/button[4]")
 
             WebDriverWait(driver, 999999).until(
                 EC.staleness_of(continue_button))

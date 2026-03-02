@@ -62,20 +62,26 @@ def silversumit_facturacion(excel_billing,usuario_app):
         if os.path.exists(PROGRESO_FILE):
             os.remove(PROGRESO_FILE)
 
-
     def autocompletar(valor, texto, campo):
         if campo == "formulario":
-            slect_provider = driver.find_element(By.XPATH, value=valor)
+            select_provider = driver.find_element(By.XPATH, value=valor)
         else:
-            slect_provider = driver.find_element(By.NAME, value=valor)
-        slect_provider.send_keys(texto)
+            select_provider = driver.find_element(By.NAME, value=valor)
+
+        # 🔥 Limpiar el campo SI tiene algo
+        if select_provider.get_attribute("value"):
+            select_provider.send_keys(Keys.CONTROL + "a")
+            select_provider.send_keys(Keys.DELETE)
+
+        # Escribir nuevo texto
+        select_provider.send_keys(texto)
 
         time.sleep(1)
+
         first_option = WebDriverWait(driver, 30).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "li.MuiAutocomplete-option"))
         )
         first_option.click()
-
 
     excel= excel_billing
     chrome_options = webdriver.ChromeOptions()
@@ -216,7 +222,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
             conteo = excel[(excel["Client Name"] == client_name) &
                            (excel["Provider Name"] == provider)].shape[0]
             # Convertir tipos sin warnings
-            fila_provider["Authorization #"] = fila_provider["Authorization #"]
+            fila_provider["Authorization #"] = fila_provider["Authorization #"].astype("Int64").astype(str)
             autorizaciones = fila_provider["Authorization #"].tolist()
             print(autorizaciones)
             conteo = fila_provider.shape[0]
@@ -421,7 +427,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
             autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[2]/div/div/input",place_services[0], "formulario")
             autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[3]/div/div/input","A", "formulario")
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[4]/div/div/input","A", "formulario")
+            autocompletar("/html/body/div[1]/div/div/div[3]/div/form[2]/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[4]/div/div/input","A", "formulario")
 
             relase = driver.find_element(By.XPATH,
                                          value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[5]/div/div/input")

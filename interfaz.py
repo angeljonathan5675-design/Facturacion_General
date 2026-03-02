@@ -221,7 +221,7 @@ def preguntar_modificar(usuario_app, seguro):
         if seguro == "medicaid":
             ventana_excels_medicaid(usuario_app)
         elif seguro == "avility":
-            escoger_seguro_avilty(usuario_app)
+            ventana_excels_avility(usuario_app)
 
     botones = ctk.CTkFrame(cont, fg_color=BG_COLOR)
     botones.pack(pady=(10,20))
@@ -404,106 +404,9 @@ def ventana_excels_medicaid(usuario):
         label_imagen.pack(expand=True)
         label_imagen.image = imagen_ctk
 
-def ventana_excels_molina(usuario):
-
-    import customtkinter as ctk
-    from tkinter import filedialog, messagebox
-    import pandas as pd
-    from PIL import Image
-    import os
-
-    BG_COLOR = "#f7f7f7"
-
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-
-    excel_billing = None
-
-    def cargar_billing():
-        nonlocal excel_billing
-        ruta = filedialog.askopenfilename(
-            title="Selecciona tu Excel de billing",
-            filetypes=[("Archivos Excel", "*.xlsx *.xls")]
-        )
-        if ruta:
-            try:
-                excel_billing = pd.read_excel(ruta, header=4, dtype={"Place of Service": str})
-                messagebox.showinfo("Éxito", "Billing cargado correctamente.")
-            except Exception as e:
-                messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
-
-    def ejecutar_avilty():
-        if excel_billing is None:
-            messagebox.showerror("Error", "Debes cargar el archivo antes de ejecutar.")
-            return
 
 
-        messagebox.showinfo("Proceso", "Facturación ejecutada con éxito.")
-
-        ventana.destroy()
-        escoger_seguro(usuario)
-
-    # -------- VENTANA --------
-    ventana = ctk.CTkToplevel()
-    ventana.title("Facturación Molina")
-    centrar_ventana(ventana, 720, 360)
-    ventana.configure(fg_color=BG_COLOR)
-
-    frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
-    frame.pack(fill="both", expand=True, padx=25, pady=20)
-
-    # -------- IZQUIERDA --------
-    col_izq = ctk.CTkFrame(frame, fg_color=BG_COLOR)
-    col_izq.pack(side="left", fill="both", expand=True)
-
-    ctk.CTkLabel(
-        col_izq,
-        text="Carga tu archivo Excel",
-        font=("Segoe UI", 18, "bold"),
-        text_color="black"
-    ).pack(pady=(0,20))
-
-    ctk.CTkButton(
-        col_izq,
-        text="Cargar Excel de Billing",
-        command=cargar_billing,
-        width=280,
-        height=42,
-        fg_color="#2563eb",
-        hover_color="#1d4ed8"
-    ).pack(pady=8)
-
-    ctk.CTkButton(
-        col_izq,
-        text="Ejecutar Molina",
-        command=ejecutar_avilty,
-        width=280,
-        height=45,
-        fg_color="#16a34a",
-        hover_color="#15803d",
-        font=("Segoe UI", 14, "bold")
-    ).pack(pady=(20,0))
-
-    # -------- DERECHA --------
-    col_der = ctk.CTkFrame(frame, fg_color=BG_COLOR)
-    col_der.pack(side="right", fill="both", expand=True)
-
-    if os.path.exists(IMAGEN_FILE):
-
-        imagen = Image.open(IMAGEN_FILE)
-
-        imagen_ctk = ctk.CTkImage(
-            light_image=imagen,
-            dark_image=imagen,
-            size=(260,260)
-        )
-
-        label_imagen = ctk.CTkLabel(col_der, image=imagen_ctk, text="")
-        label_imagen.pack(expand=True)
-        label_imagen.image = imagen_ctk
-
-
-def ventana_excels_silversumit(usuario):
+def ventana_excels_avility(usuario):
 
     import customtkinter as ctk
     from tkinter import filedialog, messagebox
@@ -544,7 +447,7 @@ def ventana_excels_silversumit(usuario):
 
     # -------- VENTANA --------
     ventana = ctk.CTkToplevel()
-    ventana.title("Facturación Silversummit")
+    ventana.title("Facturación Avility")
     centrar_ventana(ventana, 720, 360)
     ventana.configure(fg_color=BG_COLOR)
 
@@ -574,7 +477,7 @@ def ventana_excels_silversumit(usuario):
 
     ctk.CTkButton(
         col_izq,
-        text="Ejecutar Silversummit",
+        text="Ejecutar Avility",
         command=ejecutar_avilty,
         width=280,
         height=45,
@@ -898,101 +801,6 @@ def escoger_seguro(usuario):
         font=("Segoe UI", 14, "bold")
     ).pack()
 
-def escoger_seguro_avilty(usuario):
-
-    import customtkinter as ctk
-    from tkinter import messagebox
-    from PIL import Image
-    import os
-
-    BG_COLOR = "#f7f7f7"
-
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    IMAGEN_FILE = os.path.join(BASE_DIR, "Spectrum.jpg")
-
-    # -------- VENTANA --------
-    ventana = ctk.CTkToplevel()
-    ventana.title("Selección de Seguro")
-    centrar_ventana(ventana, 600, 600)
-
-    ventana.resizable(False, False)
-    ventana.configure(fg_color=BG_COLOR)
-
-    # -------- CONTENEDOR CENTRAL --------
-    contenedor = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
-    contenedor.place(relx=0.5, rely=0.5, anchor="center")
-
-    # -------- LOGO ARRIBA --------
-    if os.path.exists(IMAGEN_FILE):
-
-        imagen = Image.open(IMAGEN_FILE)
-
-        imagen_ctk = ctk.CTkImage(
-            light_image=imagen,
-            dark_image=imagen,
-            size=(300,300)   # ⭐ mismo tamaño que tu 2da ventana
-        )
-
-        label_imagen = ctk.CTkLabel(
-            contenedor,
-            image=imagen_ctk,
-            text=""
-        )
-
-        label_imagen.pack(pady=(15,10))
-        label_imagen.image = imagen_ctk
-
-    # -------- LINEA SEPARADORA --------
-    divider = ctk.CTkFrame(
-        contenedor,
-        width=320,
-        height=2,
-        fg_color="#e5e7eb"
-    )
-    divider.pack(pady=(5,20))
-
-    # -------- TITULO --------
-    titulo = ctk.CTkLabel(
-        contenedor,
-        text="Selecciona el Seguro",
-        font=("Segoe UI", 20, "bold"),
-        text_color="black"
-    )
-    titulo.pack(pady=(0,25))
-
-    # -------- FUNCIONES --------
-    def elegir_silversumit():
-        messagebox.showinfo("", "Has elegido Silversummit")
-        ventana.destroy()
-        ventana_excels_silversumit(usuario)
-
-    def elegir_molina():
-        messagebox.showinfo("", "Has elegido Molina")
-        ventana.destroy()
-        ventana_excels_molina(usuario)
-
-    # -------- BOTONES --------
-    ctk.CTkButton(
-        contenedor,
-        text="Silversummit",
-        command=elegir_silversumit,
-        width=320,
-        height=45,
-        fg_color="#16a34a",
-        hover_color="#15803d",
-        font=("Segoe UI", 14, "bold")
-    ).pack(pady=(0,15))
-
-    ctk.CTkButton(
-        contenedor,
-        text="Molina",
-        command=elegir_molina,
-        width=320,
-        height=45,
-        fg_color="#2563eb",
-        hover_color="#1d4ed8",
-        font=("Segoe UI", 14, "bold")
-    ).pack()
 
 def ventana_avilty(usuario_app):
 

@@ -848,7 +848,7 @@ def ventana_avilty(usuario_app):
             else:
                 entry_contrasena.config(show="")
 
-        # Checkbox para mostrar/ocultar
+        # Checkbox para mos trar/ocultar
         ver_contrasena = tk.Checkbutton(col_izq, text="Ver contraseña", command=toggle_password)
         ver_contrasena.pack(pady=5)
 

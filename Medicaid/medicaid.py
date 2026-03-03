@@ -199,8 +199,6 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
             # -------------------------------------------------------------------------------------------------------
             # ------------------------------------------------------------------------------------------
 
-
-
             fila["Date of Service"] = pd.to_datetime(fila["Date of Service"])
             fechas = fila["Date of Service"].dt.strftime("%m/%d/%Y").tolist()
 
@@ -208,7 +206,6 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
 
             fila["Billing Code"] = fila["Billing Code"].astype(int)
-
             Billing_Codes = fila["Billing Code"].tolist()
 
             # --------------------------------------------------------------------------------------------
@@ -281,7 +278,28 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                      """)
 
             # ------------------------------------------------------------------------------------------------
+            # ---------------- VALIDACION 97156 ----------------
 
+            fila["# of Hours"] = fila["# of Hours"].astype(float)
+
+            for _, row in fila.iterrows():
+
+                codigo = int(row["Billing Code"])
+                horas = float(row["# of Hours"])
+
+                if codigo == 97156 and horas > 1:
+                    mensaje = (
+                        "⚠ ERROR DE VALIDACION\n\n"
+                        "El código 97156 NO puede superar 1 hora.\n\n"
+                        f"Cliente: {client_name}\n"
+                        f"Provider: {provider}\n"
+                        f"Horas registradas: {horas}"
+                    )
+
+                    mostrar_alerta(driver, mensaje)
+                    time.sleep(2)
+
+                    raise Exception("Validación 97156 fallida")
 
             print(provider)
             print(f"0000{Insured_ID}")
@@ -386,27 +404,16 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     # -------------------------------------------------------------------------------------------------------
                     # ------------------------------------------------------------------------------------------
 
-                    # excel["Date of Service"] = pd.to_datetime(excel["Date of Service"])
-                    # excel["Date of Service (str)"] = excel["Date of Service"].dt.strftime("%m/%d/%Y")
-                    # Date = fila["Date of Service"].iloc[0].strftime("%m/%d/%Y")
 
                     fila["Date of Service"] = pd.to_datetime(fila["Date of Service"])
                     fechas = fila["Date of Service"].dt.strftime("%m/%d/%Y").tolist()
 
                     # --------------------------------------------------------------------------------------------------------
-                    # excel = excel.dropna(subset=["Billing Code"])
-                    # excel["Billing Code"] = excel["Billing Code"].astype(int)
-                    # Billing_Code = int(fila["Billing Code"].iloc[0])
 
                     fila["Billing Code"] = fila["Billing Code"].astype(int)
-
-                    # Guardar todos los charges en una lista
                     Billing_Codes = fila["Billing Code"].tolist()
 
                     # --------------------------------------------------------------------------------------------
-                    # excel = excel.dropna(subset=["Total Charges"])
-                    # excel["Total Charges"] = excel["Total Charges"].astype(float)
-                    # Charge = float(fila["Total Charges"].iloc[0])
 
                     # Asegurarse de que la columna sea numérica
                     fila["Total Charges"] = fila["Total Charges"].astype(float)
@@ -415,20 +422,11 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     Charge = fila["Total Charges"].tolist()
 
                     # --------------------------------------------------------------------------------------------
-                    # Asegurarse de que la columna sea numérica
-                    fila["Authorization #"] = fila["Authorization #"].astype(int)
 
-                    # Guardar todos los charges en una lista
+                    fila["Authorization #"] = fila["Authorization #"].astype(int)
                     autorizaciones = fila["Authorization #"].tolist()
                     # ------------------------------------------------------------------------------------------------------
-                    # excel = excel.dropna(subset=["# of Units"])
-                    # excel["# of Units"] = excel["# of Units"].astype(float)
-                    # Unidades = float(fila["# of Units"].iloc[0])
-
-                    # Asegurarse de que la columna sea numérica
                     fila["# of Units"] = fila["# of Units"].astype(float)
-
-                    # Guardar todos los charges en una lista
                     Unidades = fila["# of Units"].tolist()
 
                     fila["Place of Service"] = fila["Place of Service"].astype(str)
@@ -468,11 +466,6 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     print(Charge)
                     print(Unidades)
 
-
-                    # def writeRef():
-                    #     Refering_Provider_NPI_Write = driver.find_element(By.XPATH,
-                    #                                                       value="/html/body/form/div[3]/div/div[2]/div[3]/div[2]/table/tbody/tr/td/table/tbody/tr[2]/td[2]/div/div/div/div[1]/div/div[1]/div[2]/div/div[4]/div[5]/div[1]/div/div[2]/input")
-                    #     Refering_Provider_NPI_Write.send_keys(f"{Refering_Provider_NPI}")
 
 
                     rendering_provider_ID_Write = driver.find_element(By.XPATH,

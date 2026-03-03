@@ -1,6 +1,5 @@
 from time import sleep
 from tkinter import Tk, filedialog
-
 from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException, StaleElementReferenceException
@@ -188,6 +187,9 @@ def silversumit_facturacion(excel_billing,usuario_app):
         except:
             print("No encontrado, reintentando...")
 
+
+
+
     #--------------------------------------------Pagina Facturacion--------------------------------------------------------------------------
     progreso = cargar_progreso()
 
@@ -222,7 +224,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
             conteo = excel[(excel["Client Name"] == client_name) &
                            (excel["Provider Name"] == provider)].shape[0]
             # Convertir tipos sin warnings
-            fila_provider["Authorization #"] = fila_provider["Authorization #"].astype("Int64").astype(str)
+            fila_provider["Authorization #"] = fila_provider["Authorization #"].astype(str).str.strip()
             autorizaciones = fila_provider["Authorization #"].tolist()
             print(autorizaciones)
             conteo = fila_provider.shape[0]
@@ -262,6 +264,29 @@ def silversumit_facturacion(excel_billing,usuario_app):
             )
 
             diagnosis_code = fila["Diagnosis Code"].tolist()
+
+            # ---------------- VALIDACION 97156 ----------------
+
+            fila_provider["# of Hours"] = fila_provider["# of Hours"].astype(float)
+
+            for _, row in fila_provider.iterrows():
+
+                codigo = int(row["Billing Code"])
+                horas = float(row["# of Hours"])
+
+                if codigo == 97156 and horas > 1:
+                    mensaje = (
+                        "⚠ ERROR DE VALIDACION\n\n"
+                        "El código 97156 NO puede superar 1 hora.\n\n"
+                        f"Cliente: {client_name}\n"
+                        f"Provider: {provider}\n"
+                        f"Horas registradas: {horas}"
+                    )
+
+                    mostrar_alerta(driver, mensaje)
+                    time.sleep(2)
+
+                    raise Exception("Validación 97156 fallida")
             #--------------------------------------------------------------------------------------------
 
             def entrar_al_iframe_seguro(driver):

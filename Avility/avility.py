@@ -1,5 +1,7 @@
 from time import sleep
 from tkinter import Tk, filedialog
+from tkinter import messagebox
+import tkinter as tk
 from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException, StaleElementReferenceException
@@ -31,22 +33,62 @@ f = Fernet(KEY)
 def load_encrypted_excel(path):
     with open(path, "rb") as file:
         encrypted_data = file.read()
+
     decrypted_data = f.decrypt(encrypted_data)
-    return pd.read_excel(io.BytesIO(decrypted_data))
-DF_AVILITY = load_encrypted_excel(resource_path("avility-Usuarios.dat"))
+    df = pd.read_excel(io.BytesIO(decrypted_data))
 
+    nombre_archivo = os.path.basename(path)  # nombre del archivo
+    return df, nombre_archivo
 
-def silversumit_facturacion(excel_billing,usuario_app):
+DF_AVILITY, nombre_excel = load_encrypted_excel(resource_path("avility-Usuarios.dat"))
+
+def   silversumit_facturacion(excel_billing,usuario_app):
+    ruta_excel = excel_billing.attrs.get("ruta_excel")
+    archivo_actual = os.path.basename(ruta_excel)
+
+    ruta_excel = excel_billing.attrs.get("ruta_excel")
+
+    if not ruta_excel:
+        raise ValueError("No se encontró la ruta del Excel.")
+
+    archivo_actual = os.path.basename(ruta_excel)
+
+    from tkinter import messagebox
+    import tkinter as tk
+
+    def preguntar_archivo(archivo_guardado, archivo_actual):
+        root = tk._default_root
+
+        if root:
+            # traer ventana al frente
+            root.lift()
+            root.attributes('-topmost', True)
+            root.update()
+
+        respuesta = messagebox.askyesno(
+            "Progreso detectado",
+            f"Archivo anterior: {archivo_guardado}\n"
+            f"Archivo actual: {archivo_actual}\n\n"
+            "¿Desea borrar el progreso y continuar?"
+        )
+
+        if root:
+            # devolver a estado normal
+            root.attributes('-topmost', False)
+
+        return respuesta
 
     def mostrar_alerta(driver, mensaje):
         driver.execute_script("alert(arguments[0]);", mensaje)
 
 
-    def guardar_progreso(client_index, provider_index, ciclo):
+    def guardar_progreso(client_index, provider_index, ciclo,nombre_excel):
         data = {
             "client_index": client_index,
             "provider_index": provider_index,
-            "ciclo": ciclo
+            "ciclo": ciclo,
+            "nombre_billing": nombre_excel
+
         }
         with open(PROGRESO_FILE, "w") as f:
             json.dump(data, f)
@@ -191,11 +233,26 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
 
     #--------------------------------------------Pagina Facturacion--------------------------------------------------------------------------
-    progreso = cargar_progreso()
+    progreso = cargar_progreso() or {}
 
-    start_client = progreso["client_index"] if progreso else 0
-    start_provider = progreso["provider_index"] if progreso else 0
-    start_ciclo = progreso["ciclo"] if progreso else 0
+    start_client = progreso.get("client_index", 0)
+    start_provider = progreso.get("provider_index", 0)
+    start_ciclo = progreso.get("ciclo", 0)
+
+    archivo_guardado = progreso.get("nombre_billing")
+    # Verificar si el archivo es diferente
+    if archivo_guardado and archivo_guardado != archivo_actual:
+
+        borrar = preguntar_archivo( archivo_guardado, archivo_actual)
+        print("VALOR DE BORRAR:", borrar)
+        if borrar:
+            limpiar_progreso()
+            print("BORRANDO")
+            start_client = 0
+            start_provider = 0
+            start_ciclo = 0
+        else:
+            return
 
     clientes_unicos = excel["Client Name"].unique()
     primer_provider=True
@@ -340,7 +397,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
                 EC.presence_of_element_located((By.NAME, "payer"))
             )
 
-            driver.execute_script("""
+            driver.execute_script(""" 
             var input = arguments[0];
             var rect = input.getBoundingClientRect();
 
@@ -382,12 +439,12 @@ def silversumit_facturacion(excel_billing,usuario_app):
             });
             """, payer)
 
-            WebDriverWait(driver, 30).until(
+            WebDriverWait(driver, 99999).until(
                 EC.invisibility_of_element(first_option)
             )
 
 
-            slect_partient = WebDriverWait(driver, 30).until(
+            slect_partient = WebDriverWait(driver, 99999).until(
                 EC.element_to_be_clickable((By.XPATH,
                                             "/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
             )
@@ -450,12 +507,13 @@ def silversumit_facturacion(excel_billing,usuario_app):
             patient_control_number=driver.find_element(By.NAME,value="claimInformation.controlNumber")
             patient_control_number.send_keys(subscriber_memberId)
 
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[2]/div/div/input",place_services[0], "formulario")
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[3]/div/div/input","A", "formulario")
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form[2]/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[4]/div/div/input","A", "formulario")
+            autocompletar("claimInformation.providerAcceptAssignmentCode","A", "formulario_Nombre")
+            autocompletar("claimInformation.placeOfServiceCode",place_services[0], "formulario_Nombre")
+            autocompletar("claimInformation.frequencyTypeCode","A", "formulario_Nombre")
 
-            relase = driver.find_element(By.XPATH,
-                                         value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[5]/div/div/input")
+
+            relase = driver.find_element(By.NAME,
+                                         value="claimInformation.informationReleaseCode")
             relase.send_keys("Y")
 
             time.sleep(0.5)
@@ -465,18 +523,19 @@ def silversumit_facturacion(excel_billing,usuario_app):
 
             options[1].click()
 
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[6]/div/div/input", "Y","formulario")
+            autocompletar("claimInformation.providerSignatureOnFile", "Y","formulario_Nombre")
 
-            elemento = driver.find_element(By.XPATH,
-                                           value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input")
+
+            elemento = driver.find_element(By.NAME,
+                                           value="payer.claimFilingIndicatorCode")
 
             elemento.click()
             elemento.send_keys(Keys.CONTROL, "a")
             elemento.send_keys(Keys.BACKSPACE)
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[7]/div/div/input","mc","formulario")
-            autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[2]/div[2]/div/div/div/div[1]/div/div[1]/div/div/input",f"{diagnosis_code[0]}","formulario")
+            autocompletar("payer.claimFilingIndicatorCode","mc","formulario_Nombre")
+            autocompletar("claimInformation.diagnoses.0.code",f"{diagnosis_code[0]}","formulario_Nombre")
 
-            autorizacion=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[4]/div[2]/div/div[8]/div/input")
+            autorizacion = driver.find_element(By.NAME, value="claimInformation.priorAuthorizationNumber")
             autorizacion.send_keys(autorizaciones[ciclo])
 
             continuar=True
@@ -549,7 +608,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
                         ciclo += 1
                         posicion +=1
                         continuar=False
-                        guardar_progreso(cliente_i, provider_i, ciclo)
+                        guardar_progreso(cliente_i, provider_i, ciclo,archivo_actual)
                     else:
                         if conteo - ciclo != 1:
                             add_line_button = driver.find_element(By.XPATH,
@@ -557,10 +616,10 @@ def silversumit_facturacion(excel_billing,usuario_app):
                             add_line_button.click()
                         ciclo += 1
                         posicion += 1
-                        guardar_progreso(cliente_i, provider_i, ciclo)
+                        guardar_progreso(cliente_i, provider_i, ciclo,archivo_actual )
                 if repeticion == 1:
                     ciclo += 1
-                    guardar_progreso(cliente_i, provider_i, ciclo)
+                    guardar_progreso(cliente_i, provider_i, ciclo,archivo_actual)
 
                 if conteo==ciclo:
                     cambio = True
@@ -568,6 +627,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
                         "✔️ FACTURACIÓN RELLENADA\n\n"
                         "La facturación fue rellenada correctamente.\n\n"
                         "Cuando estés listo, continúa y ve a Claim Prof."
+
                     )
                     mostrar_alerta(driver, mensaje)
                     WebDriverWait(driver, 999999).until_not(EC.alert_is_present())
@@ -581,7 +641,7 @@ def silversumit_facturacion(excel_billing,usuario_app):
             WebDriverWait(driver, 999999).until(
                 EC.staleness_of(continue_button))
             if continuar==True:
-                guardar_progreso(cliente_i, provider_i + 1, 0)
+                guardar_progreso(cliente_i, provider_i + 1, 0,archivo_actual)
 
 
     mensaje = (

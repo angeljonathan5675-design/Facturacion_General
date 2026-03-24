@@ -423,17 +423,27 @@ def ventana_excels_avility(usuario):
 
     def cargar_billing():
         nonlocal excel_billing
+
         ruta = filedialog.askopenfilename(
             title="Selecciona tu Excel de billing",
             filetypes=[("Archivos Excel", "*.xlsx *.xls")]
         )
+
         if ruta:
             try:
-                excel_billing = pd.read_excel(ruta, header=4, dtype={"Place of Service": str})
+                excel_billing = pd.read_excel(
+                    ruta,
+                    header=4,
+                    dtype={"Place of Service": str}
+                )
+
+                # guardar la ruta dentro del dataframe
+                excel_billing.attrs["ruta_excel"] = ruta
+
                 messagebox.showinfo("Éxito", "Billing cargado correctamente.")
+
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
-
     def ejecutar_avilty():
         if excel_billing is None:
             messagebox.showerror("Error", "Debes cargar el archivo antes de ejecutar.")

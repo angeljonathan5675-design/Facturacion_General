@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.devtools.v141.performance_timeline import LayoutShift
+#from selenium.webdriver.common.devtools.v141.performance_timeline import LayoutShift
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -281,11 +281,17 @@ def   silversumit_facturacion(excel_billing,usuario_app):
             conteo = excel[(excel["Client Name"] == client_name) &
                            (excel["Provider Name"] == provider)].shape[0]
             # Convertir tipos sin warnings
-            fila_provider["Authorization #"] = fila_provider["Authorization #"].astype(str).str.strip()
+            fila_provider["Authorization #"] = (
+                fila_provider["Authorization #"]
+                .fillna("")
+                .apply(lambda x: str(int(x)) if str(x).replace('.0', '').isdigit() else str(x))
+                .str.strip()
+            )
+
             autorizaciones = fila_provider["Authorization #"].tolist()
+
             print(autorizaciones)
             conteo = fila_provider.shape[0]
-
             fila_provider["Date of Service"] = pd.to_datetime(fila_provider["Date of Service"])
             fechas = fila_provider["Date of Service"].dt.strftime("%m/%d/%Y").tolist()
 
@@ -397,62 +403,38 @@ def   silversumit_facturacion(excel_billing,usuario_app):
                 EC.presence_of_element_located((By.NAME, "payer"))
             )
 
-            driver.execute_script(""" 
-            var input = arguments[0];
-            var rect = input.getBoundingClientRect();
+            seguro = fila_provider["Funder"].iloc[0]
 
-            // crear label
-            var label = document.createElement('div');
-            label.innerText = 'escribe el seguro';
-            label.id = 'tooltip_seguro_custom';
-            label.style.position = 'absolute';
-            label.style.background = '#222';
-            label.style.color = 'white';
-            label.style.padding = '4px 8px';
-            label.style.borderRadius = '6px';
-            label.style.fontSize = '12px';
-            label.style.zIndex = '9999';
-            label.style.top = (window.scrollY + rect.top - 30) + 'px';
-            label.style.left = (window.scrollX + rect.left) + 'px';
+            palabras = str(seguro).split()
+            seguro_corto = " ".join(palabras[:2]) if len(palabras) >= 2 else str(seguro)
 
-            document.body.appendChild(label);
+            payer.click()
+            payer.clear()
+            payer.send_keys(seguro_corto)
 
-            // 🔥 Observador que detecta cuando el value cambia
-            var observer = new MutationObserver(function() {
-                if (input.value && input.value.length > 0) {
-                    var tip = document.getElementById('tooltip_seguro_custom');
-                    if (tip) tip.remove();
-                    observer.disconnect();
-                }
-            });
-
-            // observar cambios en atributos
-            observer.observe(input, { attributes: true, attributeFilter: ['value'] });
-
-            // respaldo extra (por si React no toca atributo sino propiedad)
-            input.addEventListener('input', function() {
-                if (input.value && input.value.length > 0) {
-                    var tip = document.getElementById('tooltip_seguro_custom');
-                    if (tip) tip.remove();
-                    observer.disconnect();
-                }
-            });
-            """, payer)
+            payer.send_keys(Keys.DOWN)
+            payer.send_keys(Keys.ENTER)
 
             WebDriverWait(driver, 99999).until(
                 EC.invisibility_of_element(first_option)
             )
 
 
-            slect_partient = WebDriverWait(driver, 99999).until(
+            select_patient = WebDriverWait(driver, 99999).until(
                 EC.element_to_be_clickable((By.XPATH,
                                             "/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[1]/div[1]/div[2]/div/div[1]/div/div/input"))
             )
 
-            slect_partient.send_keys(client_name)
+            select_patient.send_keys(client_name)
+            try:
+                time.sleep(3)
 
+                if select_patient.is_displayed():
+                    select_patient.send_keys(Keys.DOWN)
+                    select_patient.send_keys(Keys.ENTER)
 
-
+            except Exception:
+                pass  # sigue el código sin interrumpir
 
             WebDriverWait(driver, 20).until(
                 lambda d: d.find_element(By.NAME, "subscriber.memberId").get_attribute("value").strip() != ""

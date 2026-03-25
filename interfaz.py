@@ -13,6 +13,9 @@ from cryptography.fernet import Fernet
 import io
 import sys
 import os
+import subprocess
+import sys
+
 
 def resource_path(relative_path):
     try:
@@ -304,6 +307,23 @@ def ventana_excels_medicaid(usuario):
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
 
+    def abrir_ejemplo_trabajadores():
+        ruta = os.path.join(BASE_DIR, "BillingExport_2025-08-22T10_00_30_638914536306710260_451151.xlsx")
+
+        if not os.path.exists(ruta):
+            messagebox.showerror("Error", "No se encontró el archivo de ejemplo.")
+            return
+
+        try:
+            if sys.platform == "win32":
+                os.startfile(ruta)
+            elif sys.platform == "darwin":
+                subprocess.call(["open", ruta])
+            else:
+                subprocess.call(["xdg-open", ruta])
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo abrir el archivo:\n{e}")
+
     def cargar_billing():
         nonlocal excel_billing
         ruta = filedialog.askopenfilename(
@@ -351,15 +371,32 @@ def ventana_excels_medicaid(usuario):
         text_color="black"
     ).pack(pady=(0,20))
 
+    # Frame para alinear botón + ?
+    frame_trabajadores = ctk.CTkFrame(col_izq, fg_color=BG_COLOR)
+    frame_trabajadores.pack(pady=8)
+
+    # Botón principal
     ctk.CTkButton(
-        col_izq,
+        frame_trabajadores,
         text="Cargar Excel de Trabajadores",
         command=cargar_trabajadores,
-        width=280,
+        width=240,  # un poco más pequeño para que quepa el (?)
         height=42,
         fg_color="#2563eb",
         hover_color="#1d4ed8"
-    ).pack(pady=8)
+    ).pack(side="left", padx=(0, 6))
+
+    # Botón de ayuda (?)
+    ctk.CTkButton(
+        frame_trabajadores,
+        text="❓",
+        width=40,
+        height=42,
+        fg_color="#e5e7eb",
+        hover_color="#d1d5db",
+        text_color="black",
+        command=abrir_ejemplo_trabajadores
+    ).pack(side="left")
 
     ctk.CTkButton(
         col_izq,

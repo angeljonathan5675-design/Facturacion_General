@@ -308,7 +308,7 @@ def ventana_excels_medicaid(usuario):
                 messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
 
     def abrir_ejemplo_trabajadores():
-        ruta = os.path.join(BASE_DIR, "BillingExport_2025-08-22T10_00_30_638914536306710260_451151.xlsx")
+        ruta = os.path.join(BASE_DIR, "Provider_NPI(Ejemplo).xlsx")
 
         if not os.path.exists(ruta):
             messagebox.showerror("Error", "No se encontró el archivo de ejemplo.")

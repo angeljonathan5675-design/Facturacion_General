@@ -406,7 +406,7 @@ def   silversumit_facturacion(excel_billing,usuario_app):
             seguro = fila_provider["Funder"].iloc[0]
 
             palabras = str(seguro).split()
-            seguro_corto = " ".join(palabras[:2]) if len(palabras) >= 2 else str(seguro)
+            seguro_corto = " ".join(palabras[:1]) if len(palabras) >= 1 else str(seguro)
 
             payer.click()
             payer.clear()
@@ -449,6 +449,29 @@ def   silversumit_facturacion(excel_billing,usuario_app):
 
 
             autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[1]/div[2]/div/div[1]/div/div/div/input",f"{agency_name}","formulario")
+            print(agency_name, seguro)
+
+
+            if seguro == "Molina Healthcare of Nevada" and agency_name=="Spectrum":
+                direccion = driver.find_element(By.NAME, "billingProvider.addressLine1")
+                direccion.send_keys(Keys.CONTROL + "a")  # selecciona todo
+                direccion.send_keys(Keys.DELETE)
+                direccion.send_keys("7880 W MAULE AVE UNIT 1070")
+
+                ciudad = driver.find_element(By.NAME, "billingProvider.city")
+                ciudad.send_keys(Keys.CONTROL + "a")  # selecciona todo
+                ciudad.send_keys(Keys.DELETE)
+                ciudad.send_keys("LAS VEGAS")
+
+                estado = driver.find_element(By.NAME, "billingProvider.stateCode")
+                estado.send_keys(Keys.CONTROL + "a")  # selecciona todo
+                estado.send_keys(Keys.DELETE)
+                estado.send_keys("Nevada")
+
+                postal=driver.find_element(By.NAME, "billingProvider.zipCode")
+                postal.send_keys(Keys.CONTROL + "a")  # selecciona todo
+                postal.send_keys(Keys.DELETE)
+                postal.send_keys("891135283")
             def reescribir(valor, texto):
                 elemento = driver.find_element(By.NAME,
                                                        value=f"{valor}")

@@ -305,20 +305,27 @@ def ventana_excels_medicaid(usuario):
 
     # -------- FUNCIONES --------
     def cargar_trabajadores():
+        ventana.after(10, _cargar_trabajadores_real)
+
+    def _cargar_trabajadores_real():
         nonlocal excel_trabajadores
         ruta = filedialog.askopenfilename(
+            parent=ventana,
             title="Selecciona tu Excel de trabajadores",
             filetypes=[("Archivos Excel", "*.xlsx *.xls")]
         )
         if ruta:
             try:
                 excel_trabajadores = pd.read_excel(ruta)
+                ventana.lift()
+                ventana.focus_force()
                 messagebox.showinfo(
                     "Éxito",
-                    f"Trabajadores cargados:\n{list(excel_trabajadores.columns)}"
+                    f"Trabajadores cargados:\n{list(excel_trabajadores.columns)}",
+                    parent=ventana
                 )
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
+                messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}", parent=ventana)
 
     def abrir_ejemplo_trabajadores():
         ruta = os.path.join(BASE_DIR, "Provider_NPI(Ejemplo).xlsx")
@@ -338,20 +345,28 @@ def ventana_excels_medicaid(usuario):
             messagebox.showerror("Error", f"No se pudo abrir el archivo:\n{e}")
 
     def cargar_billing():
+        ventana.after(10, _cargar_billing_real)
+
+    def _cargar_billing_real():
         nonlocal excel_billing
         ruta = filedialog.askopenfilename(
+            parent=ventana,
             title="Selecciona tu Excel de billing",
             filetypes=[("Archivos Excel", "*.xlsx *.xls")]
         )
         if ruta:
             try:
                 excel_billing = pd.read_excel(ruta, header=4, dtype={"Place of Service": str})
+                ventana.lift()
+                ventana.focus_force()
                 messagebox.showinfo(
                     "Éxito",
-                    f"Billing cargado:\n{list(excel_billing.columns)}"
+                    f"Billing cargado:\n{list(excel_billing.columns)}",
+                    parent=ventana
                 )
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
+                messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}", parent=ventana)
+
 
     def ejecutar_medicaid():
         if excel_trabajadores is None or excel_billing is None:
@@ -473,12 +488,20 @@ def ventana_excels_avility(usuario):
     excel_billing = None
 
     def cargar_billing():
+        ventana.after(10, _cargar_billing_real)
+
+    def _cargar_billing_real():
         nonlocal excel_billing
 
         ruta = filedialog.askopenfilename(
+            parent=ventana,
             title="Selecciona tu Excel de billing",
             filetypes=[("Archivos Excel", "*.xlsx *.xls")]
         )
+
+        ventana.lift()
+        ventana.focus_force()
+        ventana.update_idletasks()
 
         if ruta:
             try:
@@ -488,13 +511,21 @@ def ventana_excels_avility(usuario):
                     dtype={"Place of Service": str}
                 )
 
-                # guardar la ruta dentro del dataframe
                 excel_billing.attrs["ruta_excel"] = ruta
 
-                messagebox.showinfo("Éxito", "Billing cargado correctamente.")
+                messagebox.showinfo(
+                    "Éxito",
+                    "Billing cargado correctamente.",
+                    parent=ventana
+                )
 
             except Exception as e:
-                messagebox.showerror("Error", f"No se pudo leer el archivo:\n{e}")
+                messagebox.showerror(
+                    "Error",
+                    f"No se pudo leer el archivo:\n{e}",
+                    parent=ventana
+                )
+
     def ejecutar_avilty():
         if excel_billing is None:
             messagebox.showerror("Error", "Debes cargar el archivo antes de ejecutar.")

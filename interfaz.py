@@ -25,6 +25,21 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+
+def animar_fade_in(ventana, paso=0.05, delay=20):
+    ventana.attributes("-alpha", 0.0)
+
+    def _fade(valor=0.0):
+        valor += paso
+        if valor >= 1.0:
+            ventana.attributes("-alpha", 1.0)
+            return
+        ventana.attributes("-alpha", valor)
+        ventana.after(delay, lambda: _fade(valor))
+
+    _fade()
+
+
 def save_encrypted_excel(df, path, fernet):
     buffer = io.BytesIO()
     df.to_excel(buffer, index=False)
@@ -72,7 +87,8 @@ def preguntar_modificar(usuario_app, seguro):
     # -------- VENTANA CONFIRMACION --------
     confirm = ctk.CTkToplevel()
     confirm.title("Confirmación")
-    centrar_ventana(confirm, 360, 180)
+    centrar_ventana(confirm)
+    animar_fade_in(confirm)
     confirm.configure(fg_color=BG_COLOR)
 
     confirm.grab_set()
@@ -95,7 +111,8 @@ def preguntar_modificar(usuario_app, seguro):
 
         ventana = ctk.CTkToplevel()
         ventana.title(f"Credenciales {seguro}")
-        centrar_ventana(ventana, 720, 420)
+        centrar_ventana(ventana)
+        animar_fade_in(ventana)
         ventana.configure(fg_color=BG_COLOR)
 
         frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
@@ -248,32 +265,28 @@ def preguntar_modificar(usuario_app, seguro):
     ).pack(side="right", padx=15)
 
 
-def centrar_ventana(ventana, ancho=720, alto=360):
+def centrar_ventana(ventana):
 
     def _centrar():
-
         ventana.update_idletasks()
+
+        geo = ventana.geometry().split("+")[0]
+
+        if "x" in geo:
+            ancho, alto = map(int, geo.split("x"))
+        else:
+            ancho = ventana.winfo_reqwidth()
+            alto = ventana.winfo_reqheight()
 
         pantalla_ancho = ventana.winfo_screenwidth()
         pantalla_alto = ventana.winfo_screenheight()
 
-        # ⭐ desplazamiento proporcional al monitor
-        mover_derecha = int(pantalla_ancho * 0.16)
-
-        x = int((pantalla_ancho - ancho) / 2) + mover_derecha
-        y = int((pantalla_alto - alto) / 2)
+        x = (pantalla_ancho - ancho) // 2
+        y = (pantalla_alto - alto) // 2
 
         ventana.geometry(f"{ancho}x{alto}+{x}+{y}")
 
     ventana.after(120, _centrar)
-
-
-
-
-
-
-
-
 def ventana_excels_medicaid(usuario):
 
     import customtkinter as ctk
@@ -354,7 +367,8 @@ def ventana_excels_medicaid(usuario):
     # -------- VENTANA --------
     ventana = ctk.CTkToplevel()
     ventana.title("Facturación Medicaid")
-    centrar_ventana(ventana, 720, 360)
+    centrar_ventana(ventana)
+    animar_fade_in(ventana)
     ventana.configure(fg_color=BG_COLOR)
 
     frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
@@ -495,7 +509,8 @@ def ventana_excels_avility(usuario):
     # -------- VENTANA --------
     ventana = ctk.CTkToplevel()
     ventana.title("Facturación Avility")
-    centrar_ventana(ventana, 720, 360)
+    centrar_ventana(ventana)
+    animar_fade_in(ventana)
     ventana.configure(fg_color=BG_COLOR)
 
     frame = ctk.CTkFrame(ventana, fg_color=BG_COLOR)
@@ -628,7 +643,8 @@ def iniciar_sesion():
 
     if os.path.exists(ICONO_FILE):
         login.iconbitmap(ICONO_FILE)
-    centrar_ventana(login, 820, 420)
+    centrar_ventana(login)
+    animar_fade_in(login)
 
     login.resizable(False, False)
     login.maxsize(820, 420)
@@ -735,7 +751,7 @@ def iniciar_sesion():
 
     if os.path.exists(IMAGEN_FILE):
         imagen = Image.open(IMAGEN_FILE)
-        imagen = imagen.resize((460, 460))
+        imagen = imagen.resize((400, 400))
         imagen_tk = ImageTk.PhotoImage(imagen)
 
         label_imagen = ctk.CTkLabel(
@@ -763,11 +779,9 @@ def escoger_seguro(usuario):
     # -------- VENTANA --------
     ventana = ctk.CTkToplevel()
     ventana.title("Selección")
-    centrar_ventana(ventana, 600, 600)
 
+    ventana.geometry("600x600")  # 🔥 ESTO ARREGLA EL CENTRADO
     ventana.resizable(False, False)
-    ventana.maxsize(600, 600)
-    ventana.minsize(600, 600)
 
     ventana.configure(fg_color=BG_COLOR)
 
@@ -793,7 +807,7 @@ def escoger_seguro(usuario):
             fg_color=BG_COLOR
         )
 
-        label_imagen.pack(pady=(15,10))
+        label_imagen.pack(pady=(15, 10))
         label_imagen.image = imagen_ctk
 
     # -------- LINEA SEPARADORA --------
@@ -803,7 +817,7 @@ def escoger_seguro(usuario):
         height=2,
         fg_color="#e5e7eb"
     )
-    divider.pack(pady=(5,20))
+    divider.pack(pady=(5, 20))
 
     # -------- TITULO --------
     titulo = ctk.CTkLabel(
@@ -812,7 +826,7 @@ def escoger_seguro(usuario):
         font=("Segoe UI", 20, "bold"),
         text_color="black"
     )
-    titulo.pack(pady=(0,25))
+    titulo.pack(pady=(0, 25))
 
     # -------- FUNCIONES --------
     def elegir_medicaid():
@@ -835,7 +849,7 @@ def escoger_seguro(usuario):
         fg_color="#16a34a",
         hover_color="#15803d",
         font=("Segoe UI", 14, "bold")
-    ).pack(pady=(0,15))
+    ).pack(pady=(0, 15))
 
     ctk.CTkButton(
         contenedor,
@@ -848,7 +862,8 @@ def escoger_seguro(usuario):
         font=("Segoe UI", 14, "bold")
     ).pack()
 
-
+    centrar_ventana(ventana)
+    animar_fade_in(ventana)
 def ventana_avilty(usuario_app):
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -856,7 +871,8 @@ def ventana_avilty(usuario_app):
     IMAGEN_FILE = resource_path("Spectrum.jpg")
     ventana = tk.Tk()
     ventana.title("Credenciales Avilty")
-    centrar_ventana(ventana, 700, 520)
+    centrar_ventana(ventana)
+    animar_fade_in(ventana)
 
 
 
@@ -948,7 +964,8 @@ def ventana_medicaid(usuario_app):
     IMAGEN_FILE = resource_path("Spectrum.jpg")
     ventana = tk.Tk()
     ventana.title("Credenciales Medicaid")
-    centrar_ventana(ventana,700)
+    centrar_ventana(ventana)
+    animar_fade_in(ventana)
 
 
 

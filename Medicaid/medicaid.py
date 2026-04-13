@@ -120,19 +120,21 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
     clientes_excedidos = cliente_dia[cliente_dia["# of Hours"] > 8]
 
     if not clientes_excedidos.empty:
-        fila = clientes_excedidos.iloc[0]
 
-        mensaje = (
-            f"ERROR DE HORAS (CLIENTE)\n\n"
-            f"Cliente: {fila['Client Name']}\n"
-            f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
-            f"Horas: {fila['# of Hours']}\n\n"
-            f"Máximo permitido: 8 horas"
-        )
+        mensaje = "ERROR DE HORAS (CLIENTES)\n\n"
+
+        for _, fila in clientes_excedidos.iterrows():
+            mensaje += (
+                f"Cliente: {fila['Client Name']}\n"
+                f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
+                f"Horas: {fila['# of Hours']}\n"
+                f"------------------------\n"
+            )
+
+        mensaje += "\nMáximo permitido: 8 horas"
 
         mostrar_alerta(driver, mensaje)
-        raise Exception("Cliente excede horas permitidas")
-
+        raise Exception("Clientes exceden horas permitidas")
     # =========================
     # PROVIDERS - MAX 10 HORAS
     # =========================
@@ -146,19 +148,21 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
     providers_excedidos = provider_dia[provider_dia["# of Hours"] > 10]
 
     if not providers_excedidos.empty:
-        fila = providers_excedidos.iloc[0]
 
-        mensaje = (
-            f"ERROR DE HORAS (PROVIDER)\n\n"
-            f"Provider: {fila['Provider Name']}\\n"
-            f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
-            f"Horas: {fila['# of Hours']}\n\n"
-            f"Máximo permitido: 10 horas"
-        )
+        mensaje = "ERROR DE HORAS (PROVIDERS)\n\n"
+
+        for _, fila in providers_excedidos.iterrows():
+            mensaje += (
+                f"Provider: {fila['Provider Name']}\n"
+                f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
+                f"Horas: {fila['# of Hours']}\n"
+                f"------------------------\n"
+            )
+
+        mensaje += "\nMáximo permitido: 10 horas"
 
         mostrar_alerta(driver, mensaje)
-        raise Exception("Provider excede horas permitidas")
-
+        raise Exception("Providers exceden horas permitidas")
     progreso = cargar_progreso()
 
     start_client = progreso["client_index"] if progreso else 0
@@ -528,7 +532,11 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
 
                     num_factura = 0
                     while ciclo < conteo:
-                        time.sleep(4)
+                        time.sleep(2)
+                        WebDriverWait(driver, 99999).until(
+                            EC.presence_of_element_located((By.ID,
+                                                            f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailFromDateCmnDate_{num_factura}_Control_{num_factura}")
+                                                           ))
 
                         fecha1 = driver.find_element(By.ID,
                                                      value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailFromDateCmnDate_{num_factura}_Control_{num_factura}")
@@ -642,6 +650,11 @@ def medicaid_facturacion(excel_trabajadores, excel_billing,usuario_app):
                     guardar_progreso(cliente_i, provider_i + 1, 0)
 
                 else:
+                    time.sleep(1)
+                    WebDriverWait(driver, 99999).until(
+                        EC.presence_of_element_located((By.ID,
+                                                        f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailFromDateCmnDate_{pos}_Control_{pos}")
+                                                       ))
                     print(f"ciclo {ciclo}")
                     fecha1=driver.find_element(By.ID,value=f"dnn_ctr724_SubmitProfessionalClaim3_ServiceDetailsDataList_SDDetailFromDateCmnDate_{pos}_Control_{pos}")
                     driver.execute_script(f"arguments[0].value = '{fechas[ciclo]}';", fecha1)

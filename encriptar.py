@@ -1,7 +1,7 @@
 from cryptography.fernet import Fernet\
 
 
-# 1️⃣ Generar UNA sola clave (guárdala)
+# Generar UNA sola clave (guárdala)
 key = Fernet.generate_key()
 print("GUARDA ESTA CLAVE:", key)
 

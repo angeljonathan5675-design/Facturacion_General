@@ -155,19 +155,21 @@ def   silversumit_facturacion(excel_billing,usuario_app):
     clientes_excedidos = cliente_dia[cliente_dia["# of Hours"] > 8]
 
     if not clientes_excedidos.empty:
-        fila = clientes_excedidos.iloc[0]
 
-        mensaje = (
-            f"ERROR DE HORAS (CLIENTE)\n\n"
-            f"Cliente: {fila['Client Name']}\n"
-            f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
-            f"Horas: {fila['# of Hours']}\n\n"
-            f"Máximo permitido: 8 horas"
-        )
+        mensaje = "ERROR DE HORAS (CLIENTES)\n\n"
+
+        for _, fila in clientes_excedidos.iterrows():
+            mensaje += (
+                f"Cliente: {fila['Client Name']}\n"
+                f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
+                f"Horas: {fila['# of Hours']}\n"
+                f"------------------------\n"
+            )
+
+        mensaje += "\nMáximo permitido: 8 horas"
 
         mostrar_alerta(driver, mensaje)
-        raise Exception("Cliente excede horas permitidas")
-
+        raise Exception("Clientes exceden horas permitidas")
     # =========================
     # PROVIDERS - MAX 10 HORAS
     # =========================
@@ -181,19 +183,21 @@ def   silversumit_facturacion(excel_billing,usuario_app):
     providers_excedidos = provider_dia[provider_dia["# of Hours"] > 10]
 
     if not providers_excedidos.empty:
-        fila = providers_excedidos.iloc[0]
 
-        mensaje = (
-            f"ERROR DE HORAS (PROVIDER)\n\n"
-            f"Provider: {fila['Provider Name']}\\n"
-            f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
-            f"Horas: {fila['# of Hours']}\n\n"
-            f"Máximo permitido: 10 horas"
-        )
+        mensaje = "ERROR DE HORAS (PROVIDERS)\n\n"
+
+        for _, fila in providers_excedidos.iterrows():
+            mensaje += (
+                f"Provider: {fila['Provider Name']}\n"
+                f"Fecha: {fila['Date of Service'].strftime('%m/%d/%Y')}\n"
+                f"Horas: {fila['# of Hours']}\n"
+                f"------------------------\n"
+            )
+
+        mensaje += "\nMáximo permitido: 10 horas"
 
         mostrar_alerta(driver, mensaje)
-        raise Exception("Provider excede horas permitidas")
-
+        raise Exception("Providers exceden horas permitidas")
     print("✅ VALIDACIÓN OK — se puede continuar")
 
     usuarios_df = DF_AVILITY
@@ -486,7 +490,12 @@ def   silversumit_facturacion(excel_billing,usuario_app):
             button_rendering_provider=driver.find_element(By.XPATH,value="/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[3]/button[1]")
             button_rendering_provider.click()
 
-            last_name_rendering = " ".join(provider.split()[-2:])
+            palabras = provider.split()
+
+            if len(palabras) == 2:
+                last_name_rendering = palabras[1]
+            else:
+                last_name_rendering = " ".join(palabras[-2:])
 
             autocompletar("/html/body/div[1]/div/div/div[3]/div/form/div[1]/div[1]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/div/div/input", last_name_rendering,"formulario")
 
